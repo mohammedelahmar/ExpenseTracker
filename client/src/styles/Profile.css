@@ -1,0 +1,56 @@
+.profile-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.profile-container h1 {
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--primary-color);
+  margin-bottom: 30px;
+}
+
+.profile-card,
+.password-card,
+.account-info {
+  margin-bottom: 30px;
+}
+
+.profile-card h2,
+.password-card h2,
+.account-info h2 {
+  font-size: 20px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  color: var(--text-color);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.account-info-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.account-info-item:last-child {
+  border-bottom: none;
+}
+
+.account-info-label {
+  font-weight: 500;
+  color: #666;
+}
+
+.account-info-value {
+  font-weight: 400;
+}
+
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 20px 10px;
+  }
+}

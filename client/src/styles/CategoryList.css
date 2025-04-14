@@ -1,0 +1,256 @@
+:root {
+  /* Import global variables from App.css */
+}
+
+/* Container & Header */
+.categories-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px 24px;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.justify-content-between {
+  justify-content: space-between;
+}
+
+.align-items-center {
+  align-items: center;
+}
+
+.mb-4 {
+  margin-bottom: 24px;
+}
+
+.categories-container h2 {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0;
+  position: relative;
+  padding-left: 15px;
+  letter-spacing: -0.5px;
+}
+
+.categories-container h2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10%;
+  height: 80%;
+  width: 5px;
+  background-color: var(--primary-color);
+  border-radius: 20px;
+}
+
+/* Add category button */
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  border: none;
+  padding: 12px 22px;
+  border-radius: var(--btn-radius);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: white;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+  transition: var(--transition);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 8px 16px rgba(99, 102, 241, 0.35);
+  transform: translateY(-2px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 8px rgba(99, 102, 241, 0.2);
+}
+
+/* Category Cards */
+.row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  margin: 0;
+}
+
+.mb-3 {
+  margin-bottom: 0;
+}
+
+.card {
+  height: 100%;
+  border: none;
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  transition: var(--transition);
+  overflow: hidden;
+  background: var(--card-color);
+  position: relative;
+  border-left-width: 6px !important;
+  border-left-style: solid;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--card-shadow-hover);
+}
+
+.card-body {
+  padding: 24px;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 0;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+}
+
+.card-title i {
+  font-size: 20px;
+  margin-right: 16px;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background-color: rgba(26, 35, 126, 0.1);
+  box-shadow: 0 2px 6px rgba(26, 35, 126, 0.1);
+  transition: var(--transition);
+  color: var(--primary-color);
+}
+
+.card:hover .card-title i {
+  transform: scale(1.1);
+}
+
+/* Button group */
+.btn-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn-sm {
+  padding: 8px 14px;
+  font-size: 0.875rem;
+  border-radius: var(--button-radius);
+  font-weight: 500;
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+/* Empty state */
+.categories-container > p {
+  padding: 60px 30px;
+  text-align: center;
+  background-color: var(--card-color);
+  border-radius: var(--card-radius);
+  color: var(--text-secondary);
+  font-size: 17px;
+  font-weight: 500;
+  margin: 2rem 0;
+  border: 2px dashed var(--border-color);
+  position: relative;
+  box-shadow: var(--card-shadow);
+}
+
+.categories-container > p::before {
+  content: '📂';
+  display: block;
+  font-size: 3rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Loading state */
+.categories-container > div:first-of-type:not(.d-flex):not(.row) {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-weight: 500;
+  position: relative;
+}
+
+.categories-container > div:first-of-type:not(.d-flex):not(.row)::after {
+  content: '';
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(99, 102, 241, 0.2);
+  border-left-color: var(--primary-color);
+  border-radius: 50%;
+  display: inline-block;
+  animation: loading-spin 1s linear infinite;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+
+@keyframes loading-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Dark mode handling */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --card-shadow: 0 10px 15px -5px rgba(0, 0, 0, 0.3), 0 5px 10px -6px rgba(0, 0, 0, 0.2);
+    --card-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+  }
+
+  .card {
+    background-color: #1e293b;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+  }
+  
+  .card-title {
+    color: #f1f5f9;
+  }
+  
+  .card-title i {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+  
+  .categories-container > p {
+    background-color: #0f172a;
+    color: #cbd5e1;
+    border-color: #334155;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .categories-container {
+    padding: 20px 16px;
+  }
+
+  .categories-container h2 {
+    font-size: 24px;
+  }
+  
+  .row {
+    grid-template-columns: 1fr;
+  }
+  
+  .btn-primary {
+    font-size: 0.9rem;
+    padding: 10px 18px;
+  }
+  
+  .card-title {
+    font-size: 16px;
+  }
+
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+}
