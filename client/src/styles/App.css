@@ -46,7 +46,7 @@
 body {
   font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
   background-color: var(--background-color);
-  color: var(--text-primary);
+  color: #333 !important; /* Base text color */
   line-height: 1.6;
 }
 
@@ -58,7 +58,7 @@ body {
 
 /* Card styles */
 .card {
-  background-color: var(--card-color);
+  background-color: #fff !important;
   border-radius: var(--card-radius);
   box-shadow: var(--card-shadow);
   padding: 24px;
@@ -144,6 +144,11 @@ body {
 .btn-outline-danger:hover {
   background-color: var(--danger-color);
   color: white;
+}
+
+.btn-outline-primary,
+.btn-outline-danger {
+  border-width: 1.5px;
 }
 
 .btn-block {

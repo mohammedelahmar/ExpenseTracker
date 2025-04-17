@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import '../styles/Navbar.css'; // You'll need to create this CSS file
 
@@ -39,6 +39,12 @@ const Navbar = () => {
               <Link to="/reports" className="navbar-item">Reports</Link>
               <Link to="/categories" className="navbar-item">Categories</Link>
               
+              <li className="nav-item">
+                <NavLink to="/analytics" className="nav-link" activeClassName="active">
+                  <i className="fas fa-chart-line"></i> Analytics
+                </NavLink>
+              </li>
+
               <div className="navbar-item navbar-user">
                 <span className="user-welcome">Welcome, {user.username}</span>
                 <div className="dropdown">

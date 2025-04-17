@@ -239,12 +239,11 @@
 .category-preview {
   margin-top: 2.5rem;
   padding: 1.75rem;
-  background-color: var(--background-color);
+  background-color: #f8fafc; /* Brighter background */
   border-radius: 14px;
   border-left: 6px solid;
-  border-left-color: attr(data-color);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-  transition: var(--transition);
+  color: #333; /* Ensure text visibility */
 }
 
 .category-preview:hover {
@@ -280,46 +279,6 @@
   border-radius: 10px;
   background-color: rgba(0, 0, 0, 0.03);
   color: var(--secondary-color);
-}
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --form-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
-    --primary-light: rgba(26, 35, 126, 0.15);
-    --text-primary: #f1f5f9;
-    --text-secondary: #cbd5e1;
-    --border-color: #334155;
-    --background-color: #0f172a;
-  }
-
-  .category-form-container {
-    background-color: #1e293b;
-  }
-  
-  .form-control {
-    background-color: #0f172a;
-  }
-  
-  .form-control:focus {
-    background-color: #1e293b;
-  }
-  
-  .icon-option {
-    background-color: #0f172a;
-  }
-  
-  .icon-option:hover {
-    background-color: #1e293b;
-  }
-  
-  .category-preview {
-    background-color: #0f172a;
-  }
-  
-  .preview-content i {
-    background-color: rgba(255, 255, 255, 0.05);
-  }
 }
 
 /* Responsive */

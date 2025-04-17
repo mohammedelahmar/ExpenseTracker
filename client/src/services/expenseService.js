@@ -1,7 +1,8 @@
 import axios from 'axios';
 import authService from './authService';
 
-const API_URL = 'http://localhost:5000/api/expenses';
+// Use the same base URL format as your other components
+const API_URL = '/api/expenses';
 
 // Configure axios with auth token before each request
 const configureRequest = () => {
@@ -24,6 +25,7 @@ const fetchExpenses = async (params = {}) => {
     
     return response.data;
   } catch (error) {
+    console.error('Error fetching expenses:', error);
     throw error.response?.data || { message: 'Failed to fetch expenses' };
   }
 };
@@ -61,14 +63,46 @@ const deleteExpense = async (id) => {
   }
 };
 
-// Get expense by ID
+// Get expense by ID with enhanced error handling and authentication
 const getExpenseById = async (id) => {
   try {
-    configureRequest();
-    const response = await axios.get(`${API_URL}/${id}`);
+    // Get the token directly from localStorage for this critical request
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      throw new Error('Authentication token not found');
+    }
+    
+    console.log(`Fetching expense with ID: ${id} with token: ${token.substring(0, 10)}...`);
+    
+    // Using absolute URL instead of relative URL
+    const response = await axios.get(`http://localhost:5000/api/expenses/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    
+    console.log('API response:', response);
     return response.data;
   } catch (error) {
-    throw error.response?.data || { message: 'Failed to fetch expense' };
+    console.error('Full error object:', error);
+    
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      console.error('Error response data:', error.response.data);
+      console.error('Error response status:', error.response.status);
+      console.error('Error response headers:', error.response.headers);
+      return Promise.reject(error.response.data || { message: `Server error: ${error.response.status}` });
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('Error request:', error.request);
+      return Promise.reject({ message: 'No response from server. Check your network connection.' });
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.error('Error message:', error.message);
+      return Promise.reject({ message: error.message || 'Unknown error occurred' });
+    }
   }
 };
 

@@ -178,6 +178,22 @@ select.form-control {
   margin-bottom: 30px;
   padding: 20px;
 }
+.receipt-upload-container {
+  margin-bottom: 1.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 1rem;
+  background-color: #f9f9f9;
+}
+
+.receipt-preview {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  margin-top: 5px;
+}
 
 @media (max-width: 768px) {
   .expense-form-container {

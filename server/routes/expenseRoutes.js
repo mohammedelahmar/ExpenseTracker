@@ -5,7 +5,8 @@ import {
     updateExpense, 
     deleteExpense, 
     getExpenseStats, 
-    getExpenseChart 
+    getExpenseChart, 
+    getExpenseById // Add this import
 } from '../controllers/expenseController.js';
 import { protect } from '../middleware/auth.js';
 
@@ -26,6 +27,7 @@ router.route('/')
     .get(getAllExpenses);
 
 router.route('/:id')
+    .get(getExpenseById)  // Add this line
     .put(updateExpense)
     .delete(deleteExpense);
 

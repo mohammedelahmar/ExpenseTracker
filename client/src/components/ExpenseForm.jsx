@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 import '../styles/ExpenseForm.css'; // You'll need to create this CSS file
+import ReceiptUpload from './ReceiptUpload';
 
 const ExpenseForm = ({ editExpense = null, onSubmitSuccess }) => {
   const { user } = useContext(AuthContext);
@@ -15,6 +16,7 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess }) => {
     description: '',
     receipt: ''
   });
+  const [receiptPreview, setReceiptPreview] = useState(null);
 
   // Load categories when component mounts
   useEffect(() => {
@@ -45,12 +47,61 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess }) => {
         description: editExpense.description,
         receipt: editExpense.receipt || ''
       });
+      
+      // Set receipt preview if available
+      if (editExpense.receipt) {
+        setReceiptPreview(`http://localhost:5000/${editExpense.receipt}`);
+      }
     }
   }, [editExpense]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+  };
+
+  // Handle receipt processing
+  const handleReceiptProcessed = (receiptData) => {
+    console.log('Receipt data received:', receiptData);
+    
+    // Format the date if it exists
+    let formattedDate = formData.date;
+    if (receiptData.date) {
+      try {
+        // Try to parse and format the date
+        const parsedDate = new Date(receiptData.date);
+        if (!isNaN(parsedDate)) {
+          formattedDate = parsedDate.toISOString().split('T')[0];
+        }
+      } catch (e) {
+        console.error('Error parsing date:', e);
+      }
+    }
+    
+    // Update form with extracted data
+    setFormData(prevData => {
+      const newData = {
+        ...prevData,
+        amount: receiptData.amount || prevData.amount,
+        category: receiptData.category || prevData.category,
+        description: receiptData.description || receiptData.merchant || prevData.description,
+        date: formattedDate,
+        receipt: receiptData.receipt || prevData.receipt
+      };
+      console.log('Updated form data:', newData);
+      return newData;
+    });
+    
+    // Set receipt preview
+    if (receiptData.receipt) {
+      setReceiptPreview(`http://localhost:5000/${receiptData.receipt}`);
+    }
+  };
+  
+  // Handle receipt processing error
+  const handleReceiptError = (error) => {
+    console.error("Receipt processing error:", error);
+    setError('Error processing receipt. Please try again or enter details manually.');
   };
 
   const handleSubmit = async (e) => {
@@ -87,6 +138,7 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess }) => {
           description: '',
           receipt: ''
         });
+        setReceiptPreview(null);
       }
       
       // Notify parent component of successful submission
@@ -110,6 +162,14 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess }) => {
       {error && <div className="alert alert-danger">{error}</div>}
       
       <form onSubmit={handleSubmit}>
+        {/* Receipt Upload Component */}
+        <div className="form-group receipt-upload-container">
+          <ReceiptUpload 
+            onProcessed={handleReceiptProcessed} 
+            onError={(err) => setError('Receipt processing failed')} 
+          />
+        </div>
+        
         <div className="form-group">
           <label htmlFor="amount">Amount</label>
           <input
@@ -171,18 +231,27 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess }) => {
           ></textarea>
         </div>
         
-        <div className="form-group">
-          <label htmlFor="receipt">Receipt URL (optional)</label>
-          <input
-            type="text"
-            id="receipt"
-            name="receipt"
-            className="form-control"
-            value={formData.receipt}
-            onChange={handleChange}
-            placeholder="URL to receipt image"
-          />
-        </div>
+        {/* Hidden field for receipt path */}
+        <input
+          type="hidden"
+          id="receipt"
+          name="receipt"
+          value={formData.receipt}
+        />
+        
+        {/* Receipt Preview */}
+        {receiptPreview && (
+          <div className="form-group">
+            <label>Receipt Image</label>
+            <div className="receipt-preview">
+              <img 
+                src={receiptPreview} 
+                alt="Receipt" 
+                style={{ maxWidth: '100%', maxHeight: '150px' }} 
+              />
+            </div>
+          </div>
+        )}
         
         <div className="form-actions">
           <button 

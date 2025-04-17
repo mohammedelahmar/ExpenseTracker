@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import expenseService from '../services/expenseService';
+import ReceiptViewer from './ReceiptViewer';
 import '../styles/ExpenseList.css';
 
 const ExpenseList = () => {
@@ -18,14 +19,17 @@ const ExpenseList = () => {
     limit: 10,
     sortBy: 'date:desc'
   });
+  const [viewReceipt, setViewReceipt] = useState({
+    show: false,
+    url: null,
+    description: ''
+  });
   const navigate = useNavigate();
 
-  // Load expenses when component mounts or filters change
   useEffect(() => {
     const fetchExpenses = async () => {
       try {
         setLoading(true);
-        // Remove empty filters
         const activeFilters = Object.fromEntries(
           Object.entries(filters).filter(([_, value]) => value !== '')
         );
@@ -49,7 +53,6 @@ const ExpenseList = () => {
     setFilters(prev => ({
       ...prev,
       [name]: value,
-      // Reset to page 1 when filters change
       ...(name !== 'page' && name !== 'limit' ? { page: 1 } : {})
     }));
   };
@@ -77,6 +80,38 @@ const ExpenseList = () => {
     return date.toLocaleDateString();
   };
 
+  const renderReceipt = (receipt, description) => {
+    if (!receipt) {
+      return <span className="text-muted">No receipt</span>;
+    }
+    
+    const receiptUrl = receipt.startsWith('http') 
+      ? receipt 
+      : `http://localhost:5000/${receipt}`;
+    
+    return (
+      <button
+        className="receipt-link btn btn-link p-0"
+        onClick={() => setViewReceipt({ 
+          show: true, 
+          url: receiptUrl,
+          description: description
+        })}
+      >
+        <img 
+          src={receiptUrl} 
+          alt="Receipt" 
+          className="receipt-thumbnail" 
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = "https://via.placeholder.com/50?text=Error";
+          }}
+        />
+        <span className="ms-2">View</span>
+      </button>
+    );
+  };
+
   return (
     <div className="expense-list-container">
       <div className="expense-list-header">
@@ -88,7 +123,6 @@ const ExpenseList = () => {
 
       {error && <div className="alert alert-danger">{error}</div>}
 
-      {/* Filter Form */}
       <div className="filter-section card">
         <h3>Filters</h3>
         <div className="filter-form">
@@ -176,11 +210,10 @@ const ExpenseList = () => {
         </div>
       </div>
 
-      {/* Expense Table */}
       {loading ? (
         <div className="text-center my-4">
           <div className="spinner-border" role="status">
-            <span className="sr-only">Loading...</span>
+            <span className="visually-hidden">Loading...</span>
           </div>
         </div>
       ) : expenses.length > 0 ? (
@@ -193,6 +226,7 @@ const ExpenseList = () => {
                   <th>Category</th>
                   <th>Description</th>
                   <th>Amount</th>
+                  <th>Receipt</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -203,17 +237,22 @@ const ExpenseList = () => {
                     <td>{expense.category}</td>
                     <td>{expense.description}</td>
                     <td>${parseFloat(expense.amount).toFixed(2)}</td>
+                    <td className="receipt-cell">{renderReceipt(expense.receipt, expense.description)}</td>
                     <td>
-                      <div className="btn-group btn-group-sm">
+                      <div className="action-buttons">
                         <button
-                          className="btn btn-outline-info"
+                          className="btn btn-info btn-sm me-2"
                           onClick={() => navigate(`/expenses/edit/${expense._id}`)}
+                          title="Edit expense"
+                          aria-label="Edit expense"
                         >
                           <i className="fas fa-edit"></i>
                         </button>
                         <button
-                          className="btn btn-outline-danger"
+                          className="btn btn-danger btn-sm"
                           onClick={() => handleDelete(expense._id)}
+                          title="Delete expense"
+                          aria-label="Delete expense"
                         >
                           <i className="fas fa-trash"></i>
                         </button>
@@ -225,7 +264,13 @@ const ExpenseList = () => {
             </table>
           </div>
 
-          {/* Pagination */}
+          <ReceiptViewer 
+            show={viewReceipt.show}
+            onHide={() => setViewReceipt({ show: false, url: null, description: '' })}
+            receiptUrl={viewReceipt.url}
+            description={viewReceipt.description}
+          />
+
           {pagination && pagination.pages > 1 && (
             <nav aria-label="Expense pagination">
               <ul className="pagination justify-content-center">

@@ -150,13 +150,50 @@
 
 .expense-table td {
   padding: 16px;
-  color: var(--text-secondary);
+  color: #444 !important; /* Better contrast */
   vertical-align: middle;
 }
 
 .expense-table td:nth-child(4) {
   font-weight: 600;
   color: var(--text-primary);
+}
+
+/* Receipt styles */
+.receipt-thumbnail {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  transition: transform 0.2s ease;
+}
+
+.receipt-thumbnail:hover {
+  transform: scale(1.1);
+}
+
+.receipt-cell {
+  max-width: 150px;
+}
+
+.receipt-link {
+  display: flex;
+  align-items: center;
+  color: #007bff;
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.receipt-link:hover {
+  text-decoration: underline;
+}
+
+.receipt-full {
+  max-width: 100%;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 .btn-group-sm .btn {
@@ -170,6 +207,7 @@
 .btn-outline-info {
   color: var(--secondary-color);
   border-color: var(--secondary-color);
+  border-width: 1.5px; /* Better visibility */
 }
 
 .btn-outline-info:hover {
@@ -180,6 +218,7 @@
 .btn-outline-danger {
   color: var(--danger-color);
   border-color: var(--danger-color);
+  border-width: 1.5px; /* Better visibility */
 }
 
 .btn-outline-danger:hover {
@@ -187,14 +226,46 @@
   color: white;
 }
 
+/* Action buttons styles */
+.action-buttons {
+  display: flex;
+  align-items: center;
+}
+
+.action-buttons .btn {
+  padding: 0.375rem 0.75rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-buttons .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.action-buttons .btn-info {
+  background-color: #17a2b8;
+  border-color: #17a2b8;
+  color: white;
+}
+
+.action-buttons .btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  color: white;
+}
+
 .no-data-message {
   text-align: center;
   margin: 60px 0;
   padding: 60px 40px;
-  background-color: var(--card-color);
+  background-color: #fff !important;
   border-radius: var(--card-radius);
   box-shadow: var(--card-shadow);
-  border: 1px dashed var(--border-color);
+  border: 2px dashed #e0e0e0;
 }
 
 .no-data-message p {

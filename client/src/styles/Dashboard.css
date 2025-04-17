@@ -68,7 +68,7 @@ body {
   padding: 24px;
   border-radius: var(--card-radius);
   box-shadow: var(--card-shadow);
-  background-color: white;
+  background-color: #fff !important;
   transition: var(--transition);
   position: relative;
   overflow: hidden;
@@ -90,6 +90,10 @@ body {
 
 .stats-card.success {
   border-top-color: #4CAF50;
+}
+
+.stats-card.warning {
+  border-top-color: #ff9800;
 }
 
 .stats-card.danger {
@@ -134,7 +138,7 @@ body {
 }
 
 .chart-container {
-  background: white;
+  background: #fff !important;
   border-radius: var(--card-radius);
   box-shadow: var(--card-shadow);
   padding: 24px;
@@ -191,14 +195,13 @@ input[type="date"] {
   font-size: 1rem;
   width: 100%;
   transition: var(--transition);
-  background-color: var(--background-color);
+  background-color: white;
 }
 
 input[type="date"]:focus {
   outline: none;
   border-color: #1a237e;
   box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.15);
-  background-color: white;
 }
 
 /* Recent Expenses */
@@ -223,17 +226,17 @@ input[type="date"]:focus {
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-primary);
+  margin: 0;
 }
 
 .expenses-table-container {
   overflow-x: auto;
-  margin: 0 -16px;
-  padding: 0 16px;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
+  margin-top: 10px;
 }
 
 .table th {
@@ -258,6 +261,7 @@ input[type="date"]:focus {
   padding: 16px;
   border-bottom: 1px solid #f1f5f9;
   font-size: 0.925rem;
+  color: #333 !important; /* Force dark text */
 }
 
 .table tbody tr {
@@ -298,6 +302,7 @@ input[type="date"]:focus {
   text-decoration: none;
   transition: var(--transition);
   border: none;
+  cursor: pointer;
 }
 
 .btn-primary {
@@ -324,56 +329,18 @@ input[type="date"]:focus {
   box-shadow: 0 7px 14px rgba(0, 191, 165, 0.25);
 }
 
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --card-shadow: 0 10px 20px rgba(0, 0, 0, 0.15), 0 6px 6px rgba(0, 0, 0, 0.2);
-    --background-color: #121212;
-    --text-primary: #f5f5f5;
-    --text-secondary: #a0aec0;
-  }
+/* Loading state */
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+}
 
-  .dashboard {
-    color: #e2e8f0;
-  }
-
-  .stats-card,
-  .chart-container,
-  .dashboard-filters,
-  .recent-expenses {
-    background-color: #1e293b;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-  }
-
-  .stats-card-title,
-  .filter-label,
-  .dashboard-date,
-  .stats-card-info,
-  .expense-date {
-    color: #94a3b8;
-  }
-
-  .expense-category {
-    background-color: rgba(0, 191, 165, 0.2);
-  }
-
-  .table td {
-    border-bottom: 1px solid #334155;
-  }
-
-  .table tbody tr:hover {
-    background-color: #0f172a;
-  }
-
-  input[type="date"] {
-    background-color: #0f172a;
-    border: 1px solid #334155;
-    color: #f1f5f9;
-  }
-  
-  input[type="date"]:focus {
-    background-color: #1e293b;
-  }
+/* Chart enhancements */
+.chart-container > div {
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 /* Responsive */
@@ -389,10 +356,10 @@ input[type="date"]:focus {
   .dashboard-header h1 {
     font-size: 2rem;
   }
-}
-
-/* Chart enhancements */
-.chart-container > div {
-  border-radius: 8px;
-  overflow: hidden;
+  
+  .recent-expenses-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
 }

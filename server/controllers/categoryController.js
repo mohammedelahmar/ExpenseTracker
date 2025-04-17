@@ -36,6 +36,26 @@ const getCategories = asyncHandler(async (req, res) => {
     res.json(categories);
 });
 
+// @desc   Get a category by ID
+// @route  GET /api/categories/:id
+// @access Private
+const getCategoryById = asyncHandler(async (req, res) => {
+  const category = await Category.findById(req.params.id);
+  
+  if (!category) {
+    res.status(404);
+    throw new Error('Category not found');
+  }
+  
+  // Verify ownership
+  if (category.user.toString() !== req.user._id.toString()) {
+    res.status(401);
+    throw new Error('Not authorized to access this category');
+  }
+  
+  res.json(category);
+});
+
 // @desc   Update a category
 // @route  PUT /api/categories/:id
 // @access Private
@@ -96,4 +116,4 @@ const deleteCategory = asyncHandler(async (req, res) => {
     res.json({ message: 'Category removed' });
 });
 
-export { createCategory, getCategories, updateCategory, deleteCategory };
+export { createCategory, getCategories, getCategoryById, updateCategory, deleteCategory };
