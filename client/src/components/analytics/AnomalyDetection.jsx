@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import AnalyticsLoading from './AnalyticsLoading';
-import anomalyAnimation from '../../assets/anomaly-loading.json';
+import anomalyAnimation from '../../assets/dashboard-loading.json';
 const AnomalyDetection = ({ anomalies, loading }) => {
   if (loading) {
     return <AnalyticsLoading 

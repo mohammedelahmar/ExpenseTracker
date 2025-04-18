@@ -1,0 +1,22 @@
+.add-goal-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.add-goal-container h1 {
+  margin-bottom: 1.5rem;
+  color: #2c3e50;
+  text-align: center;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .add-goal-container {
+    margin: 1rem auto;
+  }
+  
+  .add-goal-container h1 {
+    font-size: 1.75rem;
+  }
+}

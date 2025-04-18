@@ -14,6 +14,9 @@ import ReportList from './components/ReportList';
 import ReportView from './components/ReportView';
 import WelcomePage from './pages/WelcomePage';
 import Analytics from './pages/Analytics'; // Add this import
+import Goals from './pages/Goals'; // Add this import
+import AddGoal from './pages/AddGoal'; // Add this import
+import EditGoal from './pages/EditGoal'; // Add this import
 import { useAuth } from './context/AuthContext';
 import { AnalyticsProvider } from './context/AnalyticsContext'; // Add this import
 import EditExpense from './components/EditExpense';
@@ -92,6 +95,23 @@ function App() {
             <Route path="/analytics" element={
               <ProtectedRoute>
                 <Analytics />
+              </ProtectedRoute>
+            } />
+            
+            {/* Goals Routes - New */}
+            <Route path="/goals" element={
+              <ProtectedRoute>
+                <Goals />
+              </ProtectedRoute>
+            } />
+            <Route path="/goals/add" element={
+              <ProtectedRoute>
+                <AddGoal />
+              </ProtectedRoute>
+            } />
+            <Route path="/goals/edit/:id" element={
+              <ProtectedRoute>
+                <EditGoal />
               </ProtectedRoute>
             } />
             

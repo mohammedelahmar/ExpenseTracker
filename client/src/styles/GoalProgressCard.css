@@ -1,0 +1,210 @@
+.goal-card {
+     background-color: white;
+     border-radius: 12px;
+     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+     padding: 24px;
+     transition: all 0.3s ease;
+     position: relative;
+     overflow: hidden;
+     border-top: 4px solid #4361ee;
+   }
+   
+   .goal-card:hover {
+     transform: translateY(-5px);
+     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+   }
+   
+   .goal-card.completed {
+     border-top-color: #10b981;
+   }
+   
+   .goal-card.urgent {
+     border-top-color: #ef4444;
+   }
+   
+   .goal-card.near-goal {
+     border-top-color: #f59e0b;
+   }
+   
+   .goal-card.on-track {
+     border-top-color: #3b82f6;
+   }
+   
+   .goal-card-header {
+     display: flex;
+     align-items: center;
+     margin-bottom: 20px;
+   }
+   
+   .goal-icon {
+     background-color: rgba(67, 97, 238, 0.1);
+     width: 50px;
+     height: 50px;
+     border-radius: 50%;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     font-size: 22px;
+     color: #4361ee;
+     margin-right: 15px;
+   }
+   
+   .goal-completed .goal-icon {
+     background-color: rgba(16, 185, 129, 0.1);
+     color: #10b981;
+   }
+   
+   .goal-urgent .goal-icon {
+     background-color: rgba(239, 68, 68, 0.1);
+     color: #ef4444;
+   }
+   
+   .goal-title-container {
+     flex-grow: 1;
+   }
+   
+   .goal-title {
+     font-size: 18px;
+     font-weight: 600;
+     color: #1f2937;
+     margin: 0 0 5px 0;
+   }
+   
+   .goal-category {
+     display: inline-block;
+     font-size: 12px;
+     background-color: rgba(67, 97, 238, 0.1);
+     color: #4361ee;
+     padding: 3px 8px;
+     border-radius: 12px;
+   }
+   
+   .goal-progress-container {
+     margin-bottom: 20px;
+   }
+   
+   .progress-bar-container {
+     height: 16px;
+     background-color: #e5e7eb;
+     border-radius: 8px;
+     overflow: hidden;
+     margin-bottom: 10px;
+   }
+   
+   .progress-bar {
+     height: 100%;
+     background: linear-gradient(to right, #4361ee, #3b82f6);
+     border-radius: 8px;
+     transition: width 0.5s ease-out;
+     position: relative;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+   }
+   
+   .completed .progress-bar {
+     background: linear-gradient(to right, #059669, #10b981);
+   }
+   
+   .urgent .progress-bar {
+     background: linear-gradient(to right, #dc2626, #ef4444);
+   }
+   
+   .near-goal .progress-bar {
+     background: linear-gradient(to right, #d97706, #f59e0b);
+   }
+   
+   .progress-text {
+     color: white;
+     font-weight: 600;
+     font-size: 10px;
+   }
+   
+   .goal-amounts {
+     display: flex;
+     justify-content: space-between;
+   }
+   
+   .current-amount, .target-amount {
+     display: flex;
+     flex-direction: column;
+   }
+   
+   .amount-label {
+     font-size: 12px;
+     color: #6b7280;
+   }
+   
+   .amount-value {
+     font-weight: 600;
+     color: #1f2937;
+   }
+   
+   .goal-stats {
+     display: flex;
+     justify-content: space-between;
+     margin-bottom: 15px;
+     padding: 15px 0;
+     border-top: 1px solid #e5e7eb;
+     border-bottom: 1px solid #e5e7eb;
+   }
+   
+   .stat {
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+   }
+   
+   .stat-value {
+     font-weight: 600;
+     color: #1f2937;
+   }
+   
+   .stat-label {
+     font-size: 12px;
+     color: #6b7280;
+   }
+   
+   .goal-description {
+     margin-bottom: 15px;
+     font-size: 14px;
+     color: #4b5563;
+   }
+   
+   .goal-dates {
+     margin-bottom: 20px;
+     font-size: 13px;
+     color: #6b7280;
+   }
+   
+   .target-date {
+     display: flex;
+     align-items: center;
+     gap: 5px;
+   }
+   
+   .goal-actions {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+   }
+   
+   .action-buttons {
+     display: flex;
+     gap: 8px;
+   }
+   
+   .goal-completed-badge {
+     position: absolute;
+     top: 10px;
+     right: 10px;
+     background-color: #10b981;
+     color: white;
+     padding: 5px 10px;
+     border-radius: 15px;
+     font-size: 12px;
+     font-weight: 500;
+     display: flex;
+     align-items: center;
+     gap: 5px;
+   }

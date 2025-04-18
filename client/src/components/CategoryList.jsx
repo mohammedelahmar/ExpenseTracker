@@ -48,7 +48,7 @@ const CategoryList = () => {
         <div className="category-loading-container">
           <div className="category-loading-animation">
             <Lottie 
-              animationData={require('../assets/category-loading.json')} 
+              animationData={require('../assets/dashboard-loading.json')} 
               loop={true} 
               autoplay={true}
             />

@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import expenseService from '../services/expenseService';
 import ReceiptViewer from './ReceiptViewer';
 import '../styles/ExpenseList.css';
+import Lottie from 'lottie-react';
+import dashboardLoadingAnimation from '../assets/dashboard-loading.json';
 
 const ExpenseList = () => {
   const [expenses, setExpenses] = useState([]);
@@ -211,9 +213,14 @@ const ExpenseList = () => {
       </div>
 
       {loading ? (
-        <div className="text-center my-4">
-          <div className="spinner-border" role="status">
-            <span className="visually-hidden">Loading...</span>
+        <div className="loading-animation-container">
+          <div className="loading-animation-wrapper">
+            <Lottie 
+              animationData={dashboardLoadingAnimation}
+              loop={true}
+              style={{ width: 180, height: 180 }}
+            />
+            <p className="loading-text">Fetching your expenses...</p>
           </div>
         </div>
       ) : expenses.length > 0 ? (

@@ -15,6 +15,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import '../styles/ReportView.css'; // Import the new CSS file
 
 // Register ChartJS components
 ChartJS.register(
@@ -105,8 +106,8 @@ const ReportView = () => {
         {
           data: data.map(item => item.total),
           backgroundColor: [
-            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-            '#FF9F40', '#8AC249', '#EA5545', '#C5B0D5', '#7DB8A4'
+            '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
+            '#EC4899', '#06B6D4', '#F97316', '#6366F1', '#14B8A6'
           ],
         },
       ],
@@ -114,7 +115,7 @@ const ReportView = () => {
 
     return (
       <>
-        <Form onSubmit={handleFilter} className="mb-4">
+        <Form onSubmit={handleFilter} className="filter-form">
           <div className="d-flex gap-3">
             <Form.Group className="flex-grow-1">
               <Form.Label>Start Date</Form.Label>
@@ -133,23 +134,34 @@ const ReportView = () => {
               />
             </Form.Group>
             <div className="d-flex align-items-end">
-              <Button type="submit" variant="primary" className="mb-3">Apply Filter</Button>
+              <Button type="submit" variant="primary" className="filter-button mb-3">Apply Filter</Button>
             </div>
           </div>
         </Form>
         
         <div className="row">
           <div className="col-md-6">
-            <div style={{ height: '300px' }}>
-              <Pie data={chartData} options={{ maintainAspectRatio: false }} />
+            <div className="chart-container" style={{ height: '350px' }}>
+              <Pie data={chartData} options={{ 
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'bottom',
+                    labels: {
+                      padding: 20,
+                      usePointStyle: true
+                    }
+                  }
+                }
+              }} />
             </div>
           </div>
           <div className="col-md-6">
-            <Card>
-              <Card.Header>Expense Breakdown by Category</Card.Header>
+            <Card className="report-card">
+              <Card.Header className="bg-white">Expense Breakdown by Category</Card.Header>
               <Card.Body className="p-0">
                 <div className="table-responsive">
-                  <table className="table table-striped mb-0">
+                  <table className="table table-striped mb-0 report-table">
                     <thead>
                       <tr>
                         <th>Category</th>
@@ -161,7 +173,7 @@ const ReportView = () => {
                       {data.map((item, index) => (
                         <tr key={index}>
                           <td>{item._id || 'Uncategorized'}</td>
-                          <td className="text-end">${item.total.toFixed(2)}</td>
+                          <td className="text-end category-amount">${item.total.toFixed(2)}</td>
                           <td className="text-end">{item.count}</td>
                         </tr>
                       ))}
@@ -202,7 +214,7 @@ const ReportView = () => {
 
     return (
       <>
-        <Form onSubmit={handleFilter} className="mb-4">
+        <Form onSubmit={handleFilter} className="filter-form">
           <div className="d-flex gap-3">
             <Form.Group className="flex-grow-1">
               <Form.Label>Year</Form.Label>
@@ -215,12 +227,12 @@ const ReportView = () => {
               />
             </Form.Group>
             <div className="d-flex align-items-end">
-              <Button type="submit" variant="primary" className="mb-3">Apply Filter</Button>
+              <Button type="submit" variant="primary" className="filter-button mb-3">Apply Filter</Button>
             </div>
           </div>
         </Form>
         
-        <div className="mb-4" style={{ height: '400px' }}>
+        <div className="chart-container" style={{ height: '400px' }}>
           <Bar data={chartData} options={{ 
             maintainAspectRatio: false,
             scales: {
@@ -231,15 +243,22 @@ const ReportView = () => {
                   text: 'Amount ($)'
                 }
               }
+            },
+            plugins: {
+              legend: {
+                labels: {
+                  usePointStyle: true
+                }
+              }
             }
           }} />
         </div>
         
-        <Card>
-          <Card.Header>Monthly Expense Summary for {year}</Card.Header>
+        <Card className="report-card mt-4">
+          <Card.Header className="bg-white">Monthly Expense Summary for {year}</Card.Header>
           <Card.Body className="p-0">
             <div className="table-responsive">
-              <table className="table table-striped mb-0">
+              <table className="table table-striped mb-0 report-table">
                 <thead>
                   <tr>
                     <th>Month</th>
@@ -251,7 +270,7 @@ const ReportView = () => {
                   {data.map((item, index) => (
                     <tr key={index}>
                       <td>{months[item.month - 1]}</td>
-                      <td className="text-end">${item.total.toFixed(2)}</td>
+                      <td className="text-end category-amount">${item.total.toFixed(2)}</td>
                       <td className="text-end">{item.count}</td>
                     </tr>
                   ))}
@@ -313,7 +332,7 @@ const ReportView = () => {
 
     return (
       <>
-        <div className="mb-4" style={{ height: '500px' }}>
+        <div className="chart-container" style={{ height: '500px' }}>
           <Line data={chartData} options={{ 
             maintainAspectRatio: false,
             scales: {
@@ -321,14 +340,14 @@ const ReportView = () => {
                 beginAtZero: true,
                 title: {
                   display: true,
-                  text: 'Amount ($)'
+                  text: 'Value'  // Replace with your axis label
                 }
               }
             }
           }} />
         </div>
         
-        <div className="alert alert-info">
+        <div className="info-panel">
           <strong>About this report:</strong> This chart shows how your spending across different categories 
           has changed over the past 6 months, helping you identify trends in your financial habits.
         </div>
@@ -346,10 +365,10 @@ const ReportView = () => {
   };
 
   return (
-    <div className="mt-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1>{getReportTitle()}</h1>
-        <Link to="/reports" className="btn btn-outline-secondary">
+    <div className="report-container mt-4">
+      <div className="d-flex justify-content-between align-items-center mb-4 report-header">
+        <h1 className="report-title">{getReportTitle()}</h1>
+        <Link to="/reports" className="btn btn-outline-secondary back-button">
           Back to Reports
         </Link>
       </div>

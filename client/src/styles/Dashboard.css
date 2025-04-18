@@ -142,6 +142,7 @@ body {
   border-radius: var(--card-radius);
   box-shadow: var(--card-shadow);
   padding: 24px;
+  padding-bottom: 40px; /* Increased padding at bottom */
   transition: var(--transition);
   border-left: 4px solid #1a237e;
 }
@@ -393,7 +394,8 @@ input[type="date"]:focus {
 /* Chart enhancements */
 .chart-container > div {
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible; /* Changed from hidden to visible */
+  height: 340px !important; /* Increased height from 300px */
 }
 
 /* Responsive */

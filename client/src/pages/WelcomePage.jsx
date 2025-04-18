@@ -4,6 +4,8 @@ import { useLottie } from 'lottie-react';
 import '../styles/WelcomePage.css';
 
 // Import your Lottie animations
+import goalsAnimation from '../assets/Animation - 1744988807546 (1).json';
+
 const graphAnimationUrl = 'https://lottie.host/798e30a1-2411-4400-a7d9-95cb697826de/Af78fSvDGu.lottie';
 const aiAnimationUrl = 'https://lottie.host/5dd31e3b-3a49-4518-8a24-75c741794e21/Z9wCI2Y2im.lottie';
 
@@ -21,6 +23,17 @@ const GraphAnimation = () => {
 const AiAnimation = () => {
   const options = {
     animationData: aiAnimationUrl,
+    loop: true,
+    autoplay: true,
+  };
+
+  const { View } = useLottie(options);
+  return View;
+};
+
+const GoalsAnimation = () => {
+  const options = {
+    animationData: goalsAnimation,
     loop: true,
     autoplay: true,
   };
@@ -65,6 +78,10 @@ const WelcomePage = () => {
               <span className="feature-text">Set and monitor monthly budgets</span>
             </li>
             <li>
+              <span className="feature-icon">🎯</span>
+              <span className="feature-text">Create and achieve financial goals</span>
+            </li>
+            <li>
               <span className="feature-icon">🔒</span>
               <span className="feature-text">Secure and private financial tracking</span>
             </li>
@@ -89,7 +106,7 @@ const WelcomePage = () => {
         </div>
       </section>
       
-      {/* New Feature Showcase Sections with Animations */}
+      {/* Feature Showcase Sections with Animations */}
       <section className="feature-showcase">
         <div className="feature-block visualization-block">
           <div className="feature-animation">
@@ -108,6 +125,26 @@ const WelcomePage = () => {
               <li>Export and share reports with your financial advisor</li>
             </ul>
             <Link to="/register" className="btn btn-outline feature-btn">Explore Visualizations</Link>
+          </div>
+        </div>
+
+        <div className="feature-block goals-block">
+          <div className="feature-animation">
+            <div className="lottie-container">
+              <GoalsAnimation />
+            </div>
+          </div>
+          <div className="feature-description">
+            <h2>Smart Savings Goals</h2>
+            <p>Turn financial dreams into achievements with our powerful goal-setting tools. Create, track, and reach your savings targets with personalized timelines and motivating milestones.</p>
+            <ul className="feature-points">
+              <li>Set specific, measurable financial goals with target dates</li>
+              <li>Track progress with visual indicators and celebration milestones</li>
+              <li>Receive personalized saving strategies to reach goals faster</li>
+              <li>Automate contributions to your savings goals</li>
+              <li>Get notified when you're approaching or have achieved your goals</li>
+            </ul>
+            <Link to="/register" className="btn btn-outline feature-btn">Start Setting Goals</Link>
           </div>
         </div>
 

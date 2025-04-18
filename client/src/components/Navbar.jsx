@@ -45,6 +45,13 @@ const Navbar = () => {
                 </NavLink>
               </li>
 
+              <li className="nav-item">
+                <NavLink to="/goals" className="nav-link">
+                  <i className="fas fa-bullseye"></i>
+                  <span>Financial Goals</span>
+                </NavLink>
+              </li>
+
               <div className="navbar-item navbar-user">
                 <span className="user-welcome">Welcome, {user.username}</span>
                 <div className="dropdown">

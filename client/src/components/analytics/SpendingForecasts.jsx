@@ -2,7 +2,7 @@ import React from 'react';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import AnalyticsLoading from './AnalyticsLoading';
-import forecastAnimation from '../../assets/forecast-loading.json';
+import forecastAnimation from '../../assets/dashboard-loading.json';
 
 // Register required Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);

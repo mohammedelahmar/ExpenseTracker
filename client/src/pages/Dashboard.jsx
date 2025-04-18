@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import expenseService from '../services/expenseService';
 import { Bar, Pie } from 'react-chartjs-2';
 import Lottie from 'lottie-react';
+import GoalsSummary from '../components/goals/GoalsSummary.jsx';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -268,11 +269,12 @@ const Dashboard = () => {
         <div className="chart-row">
           <div className="chart-container card">
             <h3>Monthly Expenses</h3>
-            <div style={{ height: '300px' }}>
+            <div>
               <Bar 
                 data={barChartData} 
                 options={{ 
                   maintainAspectRatio: false,
+                  responsive: true,
                   scales: {
                     y: {
                       beginAtZero: true,
@@ -280,6 +282,16 @@ const Dashboard = () => {
                         display: true,
                         text: 'Amount ($)'
                       }
+                    }
+                  },
+                  plugins: {
+                    legend: {
+                      position: 'top',
+                    }
+                  },
+                  layout: {
+                    padding: {
+                      bottom: 10
                     }
                   }
                 }} 
@@ -289,15 +301,25 @@ const Dashboard = () => {
           
           <div className="chart-container card">
             <h3>Expenses by Category</h3>
-            <div style={{ height: '300px' }}>
+            <div>
               <Pie 
                 data={pieChartData} 
                 options={{ 
-                  maintainAspectRatio: false 
+                  maintainAspectRatio: false,
+                  responsive: true,
+                  plugins: {
+                    legend: {
+                      position: 'right',
+                    }
+                  }
                 }} 
               />
             </div>
           </div>
+        </div>
+
+        <div className="dashboard-section">
+          <GoalsSummary />
         </div>
 
         <div className="recent-expenses card">

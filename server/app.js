@@ -17,6 +17,7 @@ import reportRoutes from './routes/reportRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import receiptRoutes from './routes/receiptRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';  // Add this line
+import goalRoutes from './routes/goalRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -54,6 +55,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/receipts', receiptRoutes);
 app.use('/api/analytics', analyticsRoutes);  // Add this line
+app.use('/api/goals', goalRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

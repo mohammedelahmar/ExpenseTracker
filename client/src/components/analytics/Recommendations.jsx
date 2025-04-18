@@ -1,7 +1,7 @@
 import React from 'react';
 import AnalyticsLoading from './AnalyticsLoading';
 // Import the animation data directly
-import recommendationsAnimation from '../../assets/recommendations-loading.json';
+import recommendationsAnimation from '../../assets/dashboard-loading.json';
 
 const Recommendations = ({ recommendations, loading }) => {
   if (loading) {
