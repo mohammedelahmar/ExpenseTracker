@@ -27,7 +27,8 @@ export const analyzeSpendingPatterns = (expenses, period, limit) => {
   // Group expenses by period and category
   filteredExpenses.forEach(expense => {
     const periodKey = moment(expense.date).format(periodFormats[period]);
-    const categoryName = expense.category?.name || 'Uncategorized';
+    // Use category directly as it's a string
+    const categoryName = expense.category || 'Uncategorized';
     
     if (!groupedExpenses[periodKey]) {
       groupedExpenses[periodKey] = {};
@@ -41,12 +42,12 @@ export const analyzeSpendingPatterns = (expenses, period, limit) => {
   });
   
   // Calculate average spending per category
-  const categories = [...new Set(filteredExpenses.map(e => e.category?.name || 'Uncategorized'))];
+  const categories = [...new Set(filteredExpenses.map(e => e.category || 'Uncategorized'))];
   const categoryAverages = {};
   
   categories.forEach(category => {
     const categoryExpenses = filteredExpenses.filter(e => 
-      (e.category?.name || 'Uncategorized') === category
+      (e.category || 'Uncategorized') === category
     );
     
     if (categoryExpenses.length > 0) {
@@ -74,14 +75,14 @@ export const analyzeSpendingPatterns = (expenses, period, limit) => {
  */
 export const forecastExpenses = (expenses, months) => {
   // Get unique categories
-  const categories = [...new Set(expenses.map(e => e.category?.name || 'Uncategorized'))];
+  const categories = [...new Set(expenses.map(e => e.category || 'Uncategorized'))];
   
   // Group expenses by month and category
   const monthlyData = {};
   
   expenses.forEach(expense => {
     const monthKey = moment(expense.date).format('YYYY-MM');
-    const categoryName = expense.category?.name || 'Uncategorized';
+    const categoryName = expense.category ? expense.category.name : 'Uncategorized';
     
     if (!monthlyData[monthKey]) {
       monthlyData[monthKey] = {};
@@ -169,7 +170,7 @@ export const detectAnomalies = (expenses) => {
   const expensesByCategory = {};
   
   expenses.forEach(expense => {
-    const categoryName = expense.category?.name || 'Uncategorized';
+    const categoryName = expense.category || 'Uncategorized';
     
     if (!expensesByCategory[categoryName]) {
       expensesByCategory[categoryName] = [];
@@ -241,7 +242,7 @@ export const generateRecommendations = (expenses) => {
   let totalSpending = 0;
   
   expenses.forEach(expense => {
-    const categoryName = expense.category?.name || 'Uncategorized';
+    const categoryName = expense.category || 'Uncategorized';
     
     if (!categoryTotals[categoryName]) {
       categoryTotals[categoryName] = 0;

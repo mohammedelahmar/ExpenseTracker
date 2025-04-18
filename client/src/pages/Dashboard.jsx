@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import expenseService from '../services/expenseService';
 import { Bar, Pie } from 'react-chartjs-2';
+import Lottie from 'lottie-react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -175,7 +176,17 @@ const Dashboard = () => {
     return (
       <div className="container">
         <div className="dashboard">
-          <div className="loading">Loading dashboard data...</div>
+          <div className="loading-container">
+            <div className="loading-animation">
+              <Lottie 
+                animationData={require('../assets/dashboard-loading.json')} 
+                loop={true} 
+                autoplay={true}
+              />
+            </div>
+            <h2 className="loading-text">Preparing your financial insights</h2>
+            <p className="loading-subtext">This will just take a moment...</p>
+          </div>
         </div>
       </div>
     );

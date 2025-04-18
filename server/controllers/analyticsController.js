@@ -6,16 +6,16 @@ import { analyzeSpendingPatterns, detectAnomalies, forecastExpenses, generateRec
 // @route   GET /api/analytics/trends
 // @access  Private
 export const getSpendingTrends = asyncHandler(async (req, res) => {
-  console.log('getSpendingTrends called, user:', req.user?._id);
+  console.log('getSpendingTrends called, user ID:', req.user?._id);
   const userId = req.user._id;
   const { period = 'month', limit = 6 } = req.query;
   
-  // Get expenses for the user
+  // Get expenses for the user WITH populated category
   const expenses = await Expense.find({ user: userId })
-                              .populate('category', 'name color')
+                              .populate('category')
                               .sort({ date: -1 });
   
-  console.log(`Found ${expenses.length} expenses for analysis`);
+  console.log(`Found ${expenses.length} expenses for trend analysis`);
   const trends = analyzeSpendingPatterns(expenses, period, parseInt(limit));
   
   res.json({
@@ -32,9 +32,9 @@ export const getSpendingForecasts = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const { months = 3 } = req.query;
   
-  // Get historical expenses for the user
+  // Get historical expenses WITH populated category
   const expenses = await Expense.find({ user: userId })
-                              .populate('category', 'name color')
+                              .populate('category')
                               .sort({ date: -1 });
   
   console.log(`Found ${expenses.length} expenses for forecasting`);
@@ -53,9 +53,9 @@ export const getAnomalyDetection = asyncHandler(async (req, res) => {
   console.log('getAnomalyDetection called, user:', req.user?._id);
   const userId = req.user._id;
   
-  // Get expenses for the user
+  // Get expenses WITH populated category
   const expenses = await Expense.find({ user: userId })
-                              .populate('category', 'name color')
+                              .populate('category')
                               .sort({ date: -1 });
   
   console.log(`Found ${expenses.length} expenses for anomaly detection`);
@@ -74,9 +74,9 @@ export const getPersonalizedTips = asyncHandler(async (req, res) => {
   console.log('getPersonalizedTips called, user:', req.user?._id);
   const userId = req.user._id;
   
-  // Get expenses for the user
+  // Get expenses WITH populated category
   const expenses = await Expense.find({ user: userId })
-                              .populate('category', 'name color')
+                              .populate('category')
                               .sort({ date: -1 });
   
   console.log(`Found ${expenses.length} expenses for generating recommendations`);

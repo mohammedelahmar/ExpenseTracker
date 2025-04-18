@@ -263,13 +263,60 @@
   margin-top: 0;
 }
 
-/* Loading and empty states */
-.loading {
+/* Enhanced Loading Animations */
+.analytics-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05), 0 6px 6px rgba(0, 0, 0, 0.07);
+  padding: 40px 20px;
+  margin: 30px auto;
+  max-width: 500px;
   text-align: center;
-  padding: 30px;
-  color: #6c757d;
+  animation: fadeIn 0.6s ease-out forwards;
 }
 
+.analytics-loading-animation {
+  width: 200px;
+  height: 200px;
+  margin-bottom: 15px;
+}
+
+.analytics-loading-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #1a237e 0%, #2c3e50 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.analytics-loading-description {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin: 0;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Remove old loading style */
+.loading {
+  display: none;
+}
+
+/* Loading and empty states */
 .no-anomalies,
 .no-recommendations {
   text-align: center;

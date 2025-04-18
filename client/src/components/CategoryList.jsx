@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import '../styles/CategoryList.css'
+import Lottie from 'lottie-react';
+import '../styles/CategoryList.css';
+
 const CategoryList = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +42,23 @@ const CategoryList = () => {
     }
   };
 
-  if (loading) return <div>Loading categories...</div>;
+  if (loading) {
+    return (
+      <div className="categories-container">
+        <div className="category-loading-container">
+          <div className="category-loading-animation">
+            <Lottie 
+              animationData={require('../assets/category-loading.json')} 
+              loop={true} 
+              autoplay={true}
+            />
+          </div>
+          <h3 className="category-loading-text">Loading Categories</h3>
+          <p className="category-loading-subtext">Organizing your financial categories...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="categories-container">

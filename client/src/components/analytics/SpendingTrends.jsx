@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import AnalyticsLoading from './AnalyticsLoading';
+import trendsAnimation from '../../assets/trends-loading.json';
 
 // Register required Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
@@ -10,7 +12,11 @@ const SpendingTrends = ({ trends, loading }) => {
   const [limit, setLimit] = useState(6);
   
   if (loading) {
-    return <div className="loading">Loading spending trends...</div>;
+    return <AnalyticsLoading 
+      animationData={trendsAnimation}
+      title="Analyzing Your Spending Patterns"
+      description="We're crunching your transaction data to reveal meaningful trends..."
+    />;
   }
   
   if (!trends) {

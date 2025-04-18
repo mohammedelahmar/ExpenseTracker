@@ -1,9 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-
+import AnalyticsLoading from './AnalyticsLoading';
+import anomalyAnimation from '../../assets/anomaly-loading.json';
 const AnomalyDetection = ({ anomalies, loading }) => {
   if (loading) {
-    return <div className="loading">Analyzing your expenses for anomalies...</div>;
+    return <AnalyticsLoading 
+      animationData={anomalyAnimation}
+      title="Scanning for Unusual Spending"
+      description="Our system is analyzing your expenses to detect anomalies and outliers..."
+    />;
   }
   
   if (!anomalies) {
@@ -24,7 +29,7 @@ const AnomalyDetection = ({ anomalies, loading }) => {
               <div className="anomaly-info">
                 <div className="anomaly-header">
                   <h4>{anomaly.expense.description}</h4>
-                  <span className={`badge ${anomaly.percentageDifference > 0 ? 'high' : 'low'}`}>
+                  <span className={`badge ${anomaly.percentageDifference > 0 ? 'high' : 'w'}`}>
                     {anomaly.percentageDifference > 0 ? 'Above Average' : 'Below Average'}
                   </span>
                 </div>

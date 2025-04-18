@@ -1,8 +1,15 @@
 import React from 'react';
+import AnalyticsLoading from './AnalyticsLoading';
+// Import the animation data directly
+import recommendationsAnimation from '../../assets/recommendations-loading.json';
 
 const Recommendations = ({ recommendations, loading }) => {
   if (loading) {
-    return <div className="loading">Generating personalized recommendations...</div>;
+    return <AnalyticsLoading 
+      animationData={recommendationsAnimation}
+      title="Generating Smart Recommendations"
+      description="Our AI is creating personalized financial insights just for you..."
+    />;
   }
   
   if (!recommendations || !recommendations.tips || recommendations.tips.length === 0) {

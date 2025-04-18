@@ -1,13 +1,19 @@
 import React from 'react';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import AnalyticsLoading from './AnalyticsLoading';
+import forecastAnimation from '../../assets/forecast-loading.json';
 
 // Register required Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const SpendingForecasts = ({ forecasts, loading }) => {
   if (loading) {
-    return <div className="loading">Loading spending forecasts...</div>;
+    return <AnalyticsLoading 
+      animationData={forecastAnimation}
+      title="Predicting Future Expenses"
+      description="Our AI is creating financial forecasts based on your spending history..."
+    />;
   }
   
   if (!forecasts || forecasts.length === 0) {
