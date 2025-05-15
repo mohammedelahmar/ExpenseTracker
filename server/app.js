@@ -18,6 +18,8 @@ import categoryRoutes from './routes/categoryRoutes.js';
 import receiptRoutes from './routes/receiptRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';  // Add this line
 import goalRoutes from './routes/goalRoutes.js';
+import subscriptionRoutes from './routes/subscriptionRoutes.js'; // Add this line
+import bankRoutes from './routes/bankRoutes.js'; // Add this line
 import { errorHandler } from './middleware/errorHandler.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -45,7 +47,7 @@ app.get('/', (req, res) => {
 
 // Test route to verify routing is working
 app.get('/api/test', (req, res) => {
-  res.json({ message: 'Test route works' });
+  res.json({ message: 'Test route works' });    
 });
 
 // Mount route files
@@ -56,6 +58,8 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/receipts', receiptRoutes);
 app.use('/api/analytics', analyticsRoutes);  // Add this line
 app.use('/api/goals', goalRoutes);
+app.use('/api/subscriptions', subscriptionRoutes); // Add this line
+app.use('/api/bank', bankRoutes); // Add this line
 
 // Error handling middleware
 app.use(errorHandler);

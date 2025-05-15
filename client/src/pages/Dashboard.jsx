@@ -5,6 +5,7 @@ import expenseService from '../services/expenseService';
 import { Bar, Pie } from 'react-chartjs-2';
 import Lottie from 'lottie-react';
 import GoalsSummary from '../components/goals/GoalsSummary.jsx';
+import SubscriptionsSummary from '../components/subscriptions/SubscriptionsSummary';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -322,6 +323,10 @@ const Dashboard = () => {
           <GoalsSummary />
         </div>
 
+        <div className="dashboard-section">
+          <SubscriptionsSummary />
+        </div>
+
         <div className="recent-expenses card">
           <div className="recent-expenses-header">
             <h2 className="recent-expenses-title">Recent Expenses</h2>
@@ -356,6 +361,12 @@ const Dashboard = () => {
               </table>
             )}
           </div>
+        </div>
+
+        <div className="bank-connections-link">
+          <Link to="/bank-connections" className="btn btn-primary">
+            <i className="fas fa-university"></i> Connect Bank Accounts
+          </Link>
         </div>
       </div>
     </div>

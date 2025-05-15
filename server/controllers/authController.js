@@ -32,6 +32,8 @@ const registerUser = asyncHandler(async(req, res) => {
             _id: user._id,
             username: user.username,
             email: user.email,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
             token: generateToken(user._id)
         });
     } else {
@@ -54,6 +56,8 @@ const loginUser = asyncHandler(async(req, res) => {
             _id: user._id,
             username: user.username,
             email: user.email,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
             token: generateToken(user._id)
         });
     } else {
@@ -79,4 +83,58 @@ const getUserProfile = asyncHandler(async(req, res) => {
     }
 });
 
-export { registerUser, loginUser, getUserProfile };
+// @desc   Update user profile
+// @route  PUT /api/users/profile
+const updateUserProfile = asyncHandler(async(req, res) => {
+    const user = await User.findById(req.user._id);
+    
+    if(user) {
+        user.username = req.body.username || user.username;
+        user.email = req.body.email || user.email;
+        
+        const updatedUser = await user.save();
+        
+        res.json({
+            _id: updatedUser._id,
+            username: updatedUser.username,
+            email: updatedUser.email,
+            createdAt: updatedUser.createdAt,
+            updatedAt: updatedUser.updatedAt,
+            token: generateToken(updatedUser._id)
+        });
+    } else {
+        res.status(404);
+        throw new Error('User not found');
+    }
+});
+
+// @desc   Update user password
+// @route  PUT /api/users/password
+const updatePassword = asyncHandler(async(req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    
+    const user = await User.findById(req.user._id);
+    
+    if(!user) {
+        res.status(404);
+        throw new Error('User not found');
+    }
+    
+    // Check if current password is correct
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    
+    if(!isMatch) {
+        res.status(401);
+        throw new Error('Current password is incorrect');
+    }
+    
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    
+    await user.save();
+    
+    res.json({ message: 'Password updated successfully' });
+});
+
+export { registerUser, loginUser, getUserProfile, updateUserProfile, updatePassword };

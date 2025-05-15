@@ -20,6 +20,10 @@ import EditGoal from './pages/EditGoal'; // Add this import
 import { useAuth } from './context/AuthContext';
 import { AnalyticsProvider } from './context/AnalyticsContext'; // Add this import
 import EditExpense from './components/EditExpense';
+import SubscriptionList from './components/subscriptions/SubscriptionList'; // Add this import
+import SubscriptionForm from './components/subscriptions/SubscriptionForm'; // Add this import
+import BankConnections from './pages/BankConnections'; // Add this import
+import ConnectCallback from './components/bank/ConnectCallback'; // Add this import
 import './styles/analytics.css';
 
 function App() {
@@ -114,6 +118,31 @@ function App() {
                 <EditGoal />
               </ProtectedRoute>
             } />
+            
+            {/* Subscriptions Routes - New */}
+            <Route path="/subscriptions" element={
+              <ProtectedRoute>
+                <SubscriptionList />
+              </ProtectedRoute>
+            } />
+            <Route path="/subscriptions/add" element={
+              <ProtectedRoute>
+                <SubscriptionForm />
+              </ProtectedRoute>
+            } />
+            <Route path="/subscriptions/edit/:id" element={
+              <ProtectedRoute>
+                <SubscriptionForm />
+              </ProtectedRoute>
+            } />
+            
+            {/* Bank Connections Route - New */}
+            <Route path="/bank-connections" element={
+              <ProtectedRoute>
+                <BankConnections />
+              </ProtectedRoute>
+            } />
+            <Route path="/bank-connections/callback" element={<ConnectCallback />} />
             
             {/* Auth Routes */}
             <Route path="/profile" element={

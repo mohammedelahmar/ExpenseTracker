@@ -40,16 +40,32 @@ const Navbar = () => {
               <Link to="/categories" className="navbar-item">Categories</Link>
               
               <li className="nav-item">
-                <NavLink to="/analytics" className="nav-link" activeClassName="active">
+                <NavLink 
+                  to="/analytics" 
+                  className={({ isActive }) => 
+                    `nav-link${isActive ? " active" : ""}`
+                  }
+                >
                   <i className="fas fa-chart-line"></i> Analytics
                 </NavLink>
               </li>
 
               <li className="nav-item">
-                <NavLink to="/goals" className="nav-link">
+                <NavLink 
+                  to="/goals" 
+                  className={({ isActive }) => 
+                    `nav-link${isActive ? " active" : ""}`
+                  }
+                >
                   <i className="fas fa-bullseye"></i>
                   <span>Financial Goals</span>
                 </NavLink>
+              </li>
+
+              <li className="nav-item">
+                <Link className="nav-link" to="/subscriptions">
+                  <i className="fas fa-sync-alt"></i> Subscriptions
+                </Link>
               </li>
 
               <div className="navbar-item navbar-user">

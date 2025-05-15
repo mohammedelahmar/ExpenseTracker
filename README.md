@@ -19,6 +19,7 @@ This project is divided into two parts:
 - 💰 Expense tracking with smart categorization
 - 📊 Financial reporting and insightful analytics
 - 📱 Responsive design for mobile and desktop
+- 🏦 Bank Integration - Connect your bank accounts to automatically import transactions
 
 ---
 

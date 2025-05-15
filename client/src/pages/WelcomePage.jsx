@@ -5,13 +5,12 @@ import '../styles/WelcomePage.css';
 
 // Import your Lottie animations
 import goalsAnimation from '../assets/Animation - 1744988807546 (1).json';
-
-const graphAnimationUrl = 'https://lottie.host/798e30a1-2411-4400-a7d9-95cb697826de/Af78fSvDGu.lottie';
-const aiAnimationUrl = 'https://lottie.host/5dd31e3b-3a49-4518-8a24-75c741794e21/Z9wCI2Y2im.lottie';
+import graphAnimation from '../assets/Animation - 1744932183472.json';
+import aiAnimation from '../assets/Animation - 1744932755994.json';
 
 const GraphAnimation = () => {
   const options = {
-    animationData: graphAnimationUrl,
+    animationData: graphAnimation, // Fixed variable name
     loop: true,
     autoplay: true,
   };
@@ -22,12 +21,20 @@ const GraphAnimation = () => {
 
 const AiAnimation = () => {
   const options = {
-    animationData: aiAnimationUrl,
+    animationData: aiAnimation,
     loop: true,
     autoplay: true,
   };
 
-  const { View } = useLottie(options);
+  // Restrict the size with explicit dimensions
+  const style = {
+    height: '250px',  // Reduce height
+    width: '250px',   // Reduce width
+    maxWidth: '100%', // Ensure it doesn't overflow
+    margin: '0 auto'  // Center it
+  };
+
+  const { View } = useLottie(options, style);
   return View;
 };
 
@@ -110,10 +117,9 @@ const WelcomePage = () => {
       <section className="feature-showcase">
         <div className="feature-block visualization-block">
           <div className="feature-animation">
-            <iframe 
-              src="https://lottie.host/embed/798e30a1-2411-4400-a7d9-95cb697826de/Af78fSvDGu.lottie" 
-              className="lottie-animation"
-            ></iframe>
+            <div className="lottie-container">
+              <GraphAnimation /> {/* Use the component instead of iframe */}
+            </div>
           </div>
           <div className="feature-description">
             <h2>Advanced Visualization</h2>
@@ -161,10 +167,9 @@ const WelcomePage = () => {
             <Link to="/register" className="btn btn-outline feature-btn">Discover AI Features</Link>
           </div>
           <div className="feature-animation">
-            <iframe 
-              src="https://lottie.host/embed/5dd31e3b-3a49-4518-8a24-75c741794e21/Z9wCI2Y2im.lottie" 
-              className="lottie-animation"
-            ></iframe>
+            <div className="lottie-container">
+              <AiAnimation /> {/* Use the component instead of iframe */}
+            </div>
           </div>
         </div>
       </section>
