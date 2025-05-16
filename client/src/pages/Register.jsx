@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import authService from '../services/authService';
+import { GoogleLogin } from '@react-oauth/google';
 import '../styles/Login.css';
 
 const Register = () => {
@@ -53,6 +53,31 @@ const Register = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      // Send the token to your backend
+      const userData = await authService.googleSignup(credentialResponse.credential);
+      
+      // Use the login function from context
+      login(userData);
+      
+      // Redirect to dashboard
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Google registration error:', err);
+      setError(err.message || 'Google registration failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError('Google sign-up failed. Please try again.');
   };
 
   return (
@@ -132,6 +157,20 @@ const Register = () => {
             {loading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
+        
+        <div className="auth-divider">
+          <span>OR</span>
+        </div>
+        
+        <div className="google-auth-container">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            text="signup_with"
+            shape="rectangular"
+            width="100%"
+          />
+        </div>
         
         <div className="auth-form-footer">
           <p>

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import bcrypt from "bcryptjs"; // Changed from mongoose-bcrypt to bcryptjs
+import bcrypt from "bcryptjs";
 
 const UserSchema = new mongoose.Schema({
     username: {
@@ -17,12 +17,17 @@ const UserSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true,
+    },
+    resetPasswordToken: {
+        type: String,
+    },
+    resetPasswordExpires: {
+        type: Date,
     }
 }, {
     timestamps: true 
 });
 
-// Fixed method to properly compare passwords
 UserSchema.methods.matchPassword = async function(enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };

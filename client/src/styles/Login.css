@@ -183,3 +183,29 @@ body {
 .auth-info {
   display: none;
 }
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.5rem 0;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--gray-300);
+}
+
+.auth-divider span {
+  padding: 0 10px;
+  color: var(--gray-600);
+  font-size: 0.875rem;
+}
+
+.google-auth-container {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: center;
+}

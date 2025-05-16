@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import authService from '../services/authService'; // Import authService
+import { GoogleLogin } from '@react-oauth/google';
 import '../styles/Login.css';
 
 const Login = () => {
@@ -47,6 +48,27 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      const userData = await authService.googleLogin(credentialResponse.credential);
+      
+      login(userData);
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Google login error:', err);
+      setError(err.message || 'An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError('Google sign-in failed. Please try again.');
   };
 
   return (
@@ -101,6 +123,22 @@ const Login = () => {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
+        
+        <div className="auth-divider">
+          <span>OR</span>
+        </div>
+        
+        <div className="google-auth-container">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            text="signin_with"
+            shape="rectangular"
+            width="100%"
+            useOneTap={false}
+            cookiePolicy={'single_host_origin'}
+          />
+        </div>
         
         <div className="auth-form-footer">
           <p>

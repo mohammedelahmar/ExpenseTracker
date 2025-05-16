@@ -1,20 +1,24 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
 import './index.css';
 import App from './App';
-import { AuthProvider } from './context/AuthContext';
+import reportWebVitals from './reportWebVitals';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import { AuthProvider } from './context/AuthContext'; // Import the AuthProvider
+import { BrowserRouter } from 'react-router-dom'; // You'll also need this for routing
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      {/* Ensure the client ID matches exactly what's in Google Cloud Console */}
+      <GoogleOAuthProvider clientId="777108414774-se1rqrsg8rdosj7i6jdgkj50gtrsetg8.apps.googleusercontent.com">
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </GoogleOAuthProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
 
-// Remove or comment out this line:
-// reportWebVitals();
+reportWebVitals();

@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/users';
+// Replace the hardcoded URL with environment variable
+const API_URL = process.env.REACT_APP_API_URL ? 
+  `${process.env.REACT_APP_API_URL}/users` : 
+  '/api/users';
 
 // Store the token in localStorage
 const setToken = (token) => {
@@ -77,14 +80,76 @@ const getCurrentUser = async () => {
   }
 };
 
+// Google login
+const googleLogin = async (credential) => {
+  try {
+    console.log('Google login initiated with credential', credential ? 'present' : 'missing');
+    
+    const response = await axios.post(`${API_URL}/google-login`, 
+      { token: credential },
+      { withCredentials: true }
+    );
+    
+    if (response.data.token) {
+      setToken(response.data.token);
+      configureAxiosHeader();
+      return response.data;
+    } else {
+      throw new Error('No token received from server');
+    }
+  } catch (error) {
+    console.error('Google login error details:', error);
+    throw error.response?.data || { message: `Google login failed: ${error.message}` };
+  }
+};
+
+// Google signup
+const googleSignup = async (credential) => {
+  try {
+    const response = await axios.post(`${API_URL}/google-signup`, { token: credential });
+    if (response.data.token) {
+      setToken(response.data.token);
+      configureAxiosHeader();
+      return response.data;
+    }
+  } catch (error) {
+    throw error.response?.data || { message: 'Google signup failed' };
+  }
+};
+
+// Request password reset
+const forgotPassword = async (email) => {
+  try {
+    const response = await axios.post(`${API_URL}/forgot-password`, { email });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { message: 'Failed to request password reset' };
+  }
+};
+
+// Reset password with token
+const resetPassword = async (token, password) => {
+  try {
+    const response = await axios.put(`${API_URL}/reset-password/${token}`, { password });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { message: 'Failed to reset password' };
+  }
+};
+
 const authService = {
   login,
   signup,
   logout,
-  getToken,
   isAuthenticated,
   getCurrentUser,
-  configureAxiosHeader
+  getToken,
+  setToken,
+  configureAxiosHeader,
+  googleLogin,
+  googleSignup,
+  forgotPassword,
+  resetPassword
 };
 
 export default authService;

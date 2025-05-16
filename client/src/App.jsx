@@ -24,6 +24,8 @@ import SubscriptionList from './components/subscriptions/SubscriptionList'; // A
 import SubscriptionForm from './components/subscriptions/SubscriptionForm'; // Add this import
 import BankConnections from './pages/BankConnections'; // Add this import
 import ConnectCallback from './components/bank/ConnectCallback'; // Add this import
+import ForgotPassword from './pages/ForgotPassword'; // Add this import
+import ResetPassword from './pages/ResetPassword'; // Add this import
 import './styles/analytics.css';
 
 function App() {
@@ -152,6 +154,8 @@ function App() {
             } />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
 
             {/* Fallback Route */}
             <Route path="*" element={<NotFound />} />
