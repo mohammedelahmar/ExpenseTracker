@@ -15,13 +15,15 @@ export const sendEmail = async (options) => {
   console.log('Attempting to send email to:', options.to);
   
   try {
-    // Check for required environment variables
+    // Check if email credentials are set
+    // This is a good place to check if the environment variables are set
     if (!process.env.EMAIL_USERNAME || !process.env.EMAIL_PASSWORD) {
       console.error('Missing email configuration. Check .env file for EMAIL_* variables');
       throw new Error('Email configuration missing');
     }
     
     // Create Gmail-specific transporter
+    // Using Gmail SMTP server
     const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
       port: 465,
@@ -31,7 +33,8 @@ export const sendEmail = async (options) => {
         pass: process.env.EMAIL_PASSWORD
       },
       tls: {
-        // Do not fail on invalid certs
+        // This is a workaround for self-signed certificates
+        // It is not recommended for production use
         rejectUnauthorized: false
       }
     });

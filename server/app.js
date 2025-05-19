@@ -9,17 +9,16 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
 // Import routes
 import authRoutes from './routes/authRoutes.js';
 import expenseRoutes from './routes/expenseRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import receiptRoutes from './routes/receiptRoutes.js';
-import analyticsRoutes from './routes/analyticsRoutes.js';  // Add this line
+import analyticsRoutes from './routes/analyticsRoutes.js';  
 import goalRoutes from './routes/goalRoutes.js';
-import subscriptionRoutes from './routes/subscriptionRoutes.js'; // Add this line
-import bankRoutes from './routes/bankRoutes.js'; // Add this line
+import subscriptionRoutes from './routes/subscriptionRoutes.js'; 
+import bankRoutes from './routes/bankRoutes.js'; 
 import { errorHandler } from './middleware/errorHandler.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -63,10 +62,10 @@ app.use('/api/expenses', expenseRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/receipts', receiptRoutes);
-app.use('/api/analytics', analyticsRoutes);  // Add this line
+app.use('/api/analytics', analyticsRoutes);  
 app.use('/api/goals', goalRoutes);
-app.use('/api/subscriptions', subscriptionRoutes); // Add this line
-app.use('/api/bank', bankRoutes); // Add this line
+app.use('/api/subscriptions', subscriptionRoutes); 
+app.use('/api/bank', bankRoutes); 
 
 // Error handling middleware
 app.use(errorHandler);
