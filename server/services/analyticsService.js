@@ -82,7 +82,9 @@ export const forecastExpenses = (expenses, months) => {
   
   expenses.forEach(expense => {
     const monthKey = moment(expense.date).format('YYYY-MM');
-    const categoryName = expense.category ? expense.category.name : 'Uncategorized';
+    // Fix the category access - handle both string and object formats
+    const categoryName = typeof expense.category === 'object' && expense.category !== null ? 
+      expense.category.name : (expense.category || 'Uncategorized');
     
     if (!monthlyData[monthKey]) {
       monthlyData[monthKey] = {};
