@@ -6,6 +6,7 @@ import UpcomingPayments from './UpcomingPayments';
 import '../../styles/Subscription.css';
 import Lottie from 'lottie-react';
 import dashboardLoadingAnimation from '../../assets/dashboard-loading.json';
+import Swal from 'sweetalert2';
 
 const SubscriptionList = () => {
   const [subscriptions, setSubscriptions] = useState([]);
@@ -50,7 +51,17 @@ const SubscriptionList = () => {
         sub._id === id ? { ...sub, nextBillingDate: result.nextBillingDate } : sub
       ));
       
-      alert('Payment recorded successfully!');
+      Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: 'Payment recorded successfully!',
+        confirmButtonColor: '#28a745',
+        timer: 3000,
+        timerProgressBar: true,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false
+      });
     } catch (err) {
       setError('Failed to record payment');
       console.error(err);
