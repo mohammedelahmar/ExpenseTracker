@@ -51,3 +51,11 @@ coverage
 # Debug files
 .pnpm-debug.log*
 
+
+
+screenshot/
+Diagrammes/
+rapport PFE pdf.pdf
+rapport_de_stage_tech\[1].pptx
+rapport_stage.docx
+rapport_stage.pdf
