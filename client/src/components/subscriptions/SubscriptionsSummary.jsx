@@ -71,40 +71,53 @@ const SubscriptionsSummary = () => {
   
   return (
     <div className="dashboard-section">
-      <div className="card">
-        <div className="card-header d-flex justify-content-between align-items-center">
-          <h5 className="card-title mb-0">Subscriptions</h5>
-          <Link to="/subscriptions" className="btn btn-sm btn-primary">View All</Link>
-        </div>
-        <div className="card-body">
-          <div className="row mb-3">
-            <div className="col">
-              <div className="subscription-summary-card">
-                <h6>Monthly Recurring</h6>
-                <h3>{formatCurrency(totalMonthly)}</h3>
-              </div>
+      <div className="subscription-dashboard-card">
+        <div className="subscription-dashboard-header">
+          <div className="subscription-header-left">
+            <h3 className="subscription-dashboard-title">Subscriptions</h3>
+            <div className="subscription-total-badge">
+              <span className="subscription-icon">💸</span>
+              Monthly Total: {formatCurrency(totalMonthly)}
             </div>
           </div>
-          
-          {upcomingPayments.length > 0 ? (
-            <div>
-              <h6 className="text-muted mb-3">Upcoming in 7 days</h6>
-              <ul className="list-group">
-                {upcomingPayments.map(payment => (
-                  <li key={payment._id} className="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                      <span className="badge bg-primary me-2">
-                        {new Date(payment.nextBillingDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </span>
-                      {payment.name}
-                    </div>
-                    <span>{formatCurrency(payment.amount)}</span>
-                  </li>
-                ))}
-              </ul>
+          <Link to="/subscriptions" className="subscription-view-all">
+            View All <i className="fas fa-arrow-right"></i>
+          </Link>
+        </div>
+        
+        <div className="subscription-dashboard-content">
+          {loading ? (
+            <div className="subscription-loading">
+              <div className="subscription-loading-pulse"></div>
+              <p>Loading subscription data...</p>
             </div>
+          ) : upcomingPayments.length > 0 ? (
+            <>
+              <h4 className="upcoming-title">
+                <i className="fas fa-calendar-check"></i> Upcoming in 7 days
+              </h4>
+              <div className="upcoming-subscriptions">
+                {upcomingPayments.map(payment => (
+                  <div key={payment._id} className="upcoming-subscription-item">
+                    <div className="upcoming-subscription-info">
+                      <div className="upcoming-date-badge">
+                        {new Date(payment.nextBillingDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </div>
+                      <div className="upcoming-subscription-name">
+                        {payment.name}
+                        <span className="upcoming-subscription-category">{payment.category}</span>
+                      </div>
+                    </div>
+                    <div className="upcoming-subscription-amount">{formatCurrency(payment.amount)}</div>
+                  </div>
+                ))}
+              </div>
+            </>
           ) : (
-            <p>No upcoming subscription payments in the next 7 days.</p>
+            <div className="no-subscriptions-message">
+              <i className="fas fa-check-circle"></i>
+              <p>No upcoming subscription payments in the next 7 days.</p>
+            </div>
           )}
         </div>
       </div>
