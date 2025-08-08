@@ -11,6 +11,7 @@ const ExpenseList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [pagination, setPagination] = useState(null);
+  const [showFilters, setShowFilters] = useState(true);
   const [filters, setFilters] = useState({
     startDate: '',
     endDate: '',
@@ -62,6 +63,7 @@ const ExpenseList = () => {
   const handlePageChange = (newPage) => {
     if (newPage > 0 && newPage <= pagination?.pages) {
       setFilters(prev => ({ ...prev, page: newPage }));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -77,14 +79,29 @@ const ExpenseList = () => {
     }
   };
 
+  const resetFilters = () => {
+    setFilters({
+      startDate: '',
+      endDate: '',
+      category: '',
+      minAmount: '',
+      maxAmount: '',
+      page: 1,
+      limit: 10,
+      sortBy: 'date:desc'
+    });
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString();
+    const day = date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+    const year = date.toLocaleDateString('en-US', { year: 'numeric' });
+    return { day, year };
   };
 
   const renderReceipt = (receipt, description) => {
     if (!receipt) {
-      return <span className="text-muted">No receipt</span>;
+      return <span className="no-receipt">No receipt</span>;
     }
     
     const receiptUrl = receipt.startsWith('http') 
@@ -93,7 +110,7 @@ const ExpenseList = () => {
     
     return (
       <button
-        className="receipt-link btn btn-link p-0"
+        className="receipt-link"
         onClick={() => setViewReceipt({ 
           show: true, 
           url: receiptUrl,
@@ -109,7 +126,7 @@ const ExpenseList = () => {
             e.target.src = "https://via.placeholder.com/50?text=Error";
           }}
         />
-        <span className="ms-2">View</span>
+        <span>View</span>
       </button>
     );
   };
@@ -117,99 +134,129 @@ const ExpenseList = () => {
   return (
     <div className="expense-list-container">
       <div className="expense-list-header">
-        <h1>Expenses</h1>
-        <Link to="/expenses/add" className="btn btn-primary">
+        <h1>Your Expenses</h1>
+        <Link to="/expenses/add" className="add-expense-btn">
           <i className="fas fa-plus"></i> Add New Expense
         </Link>
       </div>
 
       {error && <div className="alert alert-danger">{error}</div>}
 
-      <div className="filter-section card">
-        <h3>Filters</h3>
-        <div className="filter-form">
-          <div className="form-row">
-            <div className="form-group col-md-6">
-              <label htmlFor="startDate">Start Date</label>
-              <input
-                type="date"
-                id="startDate"
-                name="startDate"
-                className="form-control"
-                value={filters.startDate}
-                onChange={handleFilterChange}
-              />
-            </div>
-            <div className="form-group col-md-6">
-              <label htmlFor="endDate">End Date</label>
-              <input
-                type="date"
-                id="endDate"
-                name="endDate"
-                className="form-control"
-                value={filters.endDate}
-                onChange={handleFilterChange}
-              />
-            </div>
+      <div className="filter-card">
+        <div className="filter-header">
+          <div className="filter-title">
+            <i className="fas fa-filter"></i> Filters
           </div>
-          <div className="form-row">
-            <div className="form-group col-md-4">
-              <label htmlFor="category">Category</label>
-              <input
-                type="text"
-                id="category"
-                name="category"
-                className="form-control"
-                value={filters.category}
-                onChange={handleFilterChange}
-                placeholder="Filter by category"
-              />
-            </div>
-            <div className="form-group col-md-4">
-              <label htmlFor="minAmount">Min Amount</label>
-              <input
-                type="number"
-                id="minAmount"
-                name="minAmount"
-                className="form-control"
-                value={filters.minAmount}
-                onChange={handleFilterChange}
-                placeholder="Min amount"
-                min="0"
-              />
-            </div>
-            <div className="form-group col-md-4">
-              <label htmlFor="maxAmount">Max Amount</label>
-              <input
-                type="number"
-                id="maxAmount"
-                name="maxAmount"
-                className="form-control"
-                value={filters.maxAmount}
-                onChange={handleFilterChange}
-                placeholder="Max amount"
-                min="0"
-              />
-            </div>
-          </div>
-          <div className="form-row">
-            <div className="form-group col-md-12">
-              <label htmlFor="sortBy">Sort By</label>
-              <select
-                id="sortBy"
-                name="sortBy"
-                className="form-control"
-                value={filters.sortBy}
-                onChange={handleFilterChange}
-              >
-                <option value="date:desc">Date (Newest First)</option>
-                <option value="date:asc">Date (Oldest First)</option>
-                <option value="amount:desc">Amount (Highest First)</option>
-                <option value="amount:asc">Amount (Lowest First)</option>
-              </select>
-            </div>
-          </div>
+          <button 
+            className="filter-toggle-btn"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            {showFilters ? (
+              <>Hide Filters <i className="fas fa-chevron-up"></i></>
+            ) : (
+              <>Show Filters <i className="fas fa-chevron-down"></i></>
+            )}
+          </button>
         </div>
+        
+        {showFilters && (
+          <>
+            <div className="filter-form-grid">
+              <div className="filter-date-inputs">
+                <div className="filter-date-group">
+                  <label className="filter-label" htmlFor="startDate">From</label>
+                  <i className="fas fa-calendar-alt"></i>
+                  <input
+                    type="date"
+                    id="startDate"
+                    name="startDate"
+                    className="filter-input filter-date-input"
+                    value={filters.startDate}
+                    onChange={handleFilterChange}
+                  />
+                </div>
+                <div className="filter-date-group">
+                  <label className="filter-label" htmlFor="endDate">To</label>
+                  <i className="fas fa-calendar-alt"></i>
+                  <input
+                    type="date"
+                    id="endDate"
+                    name="endDate"
+                    className="filter-input filter-date-input"
+                    value={filters.endDate}
+                    onChange={handleFilterChange}
+                  />
+                </div>
+              </div>
+
+              <div className="filter-group">
+                <label className="filter-label" htmlFor="category">Category</label>
+                <input
+                  type="text"
+                  id="category"
+                  name="category"
+                  className="filter-input"
+                  value={filters.category}
+                  onChange={handleFilterChange}
+                  placeholder="Filter by category"
+                />
+              </div>
+
+              <div className="filter-group">
+                <label className="filter-label" htmlFor="minAmount">Minimum Amount</label>
+                <input
+                  type="number"
+                  id="minAmount"
+                  name="minAmount"
+                  className="filter-input"
+                  value={filters.minAmount}
+                  onChange={handleFilterChange}
+                  placeholder="Min amount"
+                  min="0"
+                />
+              </div>
+
+              <div className="filter-group">
+                <label className="filter-label" htmlFor="maxAmount">Maximum Amount</label>
+                <input
+                  type="number"
+                  id="maxAmount"
+                  name="maxAmount"
+                  className="filter-input"
+                  value={filters.maxAmount}
+                  onChange={handleFilterChange}
+                  placeholder="Max amount"
+                  min="0"
+                />
+              </div>
+
+              <div className="filter-group">
+                <label className="filter-label" htmlFor="sortBy">Sort By</label>
+                <select
+                  id="sortBy"
+                  name="sortBy"
+                  className="filter-input filter-select"
+                  value={filters.sortBy}
+                  onChange={handleFilterChange}
+                >
+                  <option value="date:desc">Date (Newest First)</option>
+                  <option value="date:asc">Date (Oldest First)</option>
+                  <option value="amount:desc">Amount (Highest First)</option>
+                  <option value="amount:asc">Amount (Lowest First)</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="filter-actions">
+              <button className="filter-btn reset-btn" onClick={resetFilters}>
+                <i className="fas fa-undo"></i> Reset Filters
+              </button>
+              <button className="filter-btn apply-btn" onClick={() => setFilters({...filters})}>
+                <i className="fas fa-search"></i> Apply Filters
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       {loading ? (
@@ -225,8 +272,8 @@ const ExpenseList = () => {
         </div>
       ) : expenses.length > 0 ? (
         <>
-          <div className="table-responsive">
-            <table className="table expense-table">
+          <div className="expense-table-container">
+            <table className="expense-table">
               <thead>
                 <tr>
                   <th>Date</th>
@@ -238,35 +285,51 @@ const ExpenseList = () => {
                 </tr>
               </thead>
               <tbody>
-                {expenses.map(expense => (
-                  <tr key={expense._id}>
-                    <td>{formatDate(expense.date)}</td>
-                    <td>{expense.category}</td>
-                    <td>{expense.description}</td>
-                    <td>${parseFloat(expense.amount).toFixed(2)}</td>
-                    <td className="receipt-cell">{renderReceipt(expense.receipt, expense.description)}</td>
-                    <td>
-                      <div className="action-buttons">
-                        <button
-                          className="btn btn-info btn-sm me-2"
-                          onClick={() => navigate(`/expenses/edit/${expense._id}`)}
-                          title="Edit expense"
-                          aria-label="Edit expense"
-                        >
-                          <i className="fas fa-edit"></i>
-                        </button>
-                        <button
-                          className="btn btn-danger btn-sm"
-                          onClick={() => handleDelete(expense._id)}
-                          title="Delete expense"
-                          aria-label="Delete expense"
-                        >
-                          <i className="fas fa-trash"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {expenses.map(expense => {
+                  const { day, year } = formatDate(expense.date);
+                  return (
+                    <tr key={expense._id}>
+                      <td data-label="Date">
+                        <div className="expense-date">
+                          <span className="expense-day">{day}</span>
+                          <span className="expense-year">{year}</span>
+                        </div>
+                      </td>
+                      <td data-label="Category">
+                        <span className="expense-category">{expense.category}</span>
+                      </td>
+                      <td data-label="Description">
+                        <span className="expense-description">{expense.description}</span>
+                      </td>
+                      <td data-label="Amount">
+                        <span className="expense-amount">${parseFloat(expense.amount).toFixed(2)}</span>
+                      </td>
+                      <td data-label="Receipt" className="receipt-cell">
+                        {renderReceipt(expense.receipt, expense.description)}
+                      </td>
+                      <td data-label="Actions">
+                        <div className="action-buttons">
+                          <button
+                            className="action-btn edit-btn"
+                            onClick={() => navigate(`/expenses/edit/${expense._id}`)}
+                            title="Edit expense"
+                            aria-label="Edit expense"
+                          >
+                            <i className="fas fa-edit"></i>
+                          </button>
+                          <button
+                            className="action-btn delete-btn"
+                            onClick={() => handleDelete(expense._id)}
+                            title="Delete expense"
+                            aria-label="Delete expense"
+                          >
+                            <i className="fas fa-trash"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -279,14 +342,15 @@ const ExpenseList = () => {
           />
 
           {pagination && pagination.pages > 1 && (
-            <nav aria-label="Expense pagination">
-              <ul className="pagination justify-content-center">
+            <div className="pagination-container">
+              <ul className="pagination">
                 <li className={`page-item ${pagination.page === 1 ? 'disabled' : ''}`}>
                   <button 
                     className="page-link" 
                     onClick={() => handlePageChange(pagination.page - 1)}
+                    aria-label="Previous page"
                   >
-                    Previous
+                    <i className="fas fa-chevron-left"></i>
                   </button>
                 </li>
                 
@@ -308,19 +372,23 @@ const ExpenseList = () => {
                   <button 
                     className="page-link" 
                     onClick={() => handlePageChange(pagination.page + 1)}
+                    aria-label="Next page"
                   >
-                    Next
+                    <i className="fas fa-chevron-right"></i>
                   </button>
                 </li>
               </ul>
-            </nav>
+            </div>
           )}
         </>
       ) : (
-        <div className="no-data-message">
-          <p>No expenses found. Add a new expense to get started!</p>
-          <Link to="/expenses/add" className="btn btn-primary">
-            Add Your First Expense
+        <div className="no-data-container">
+          <div className="no-data-icon">
+            <i className="fas fa-receipt"></i>
+          </div>
+          <p className="no-data-text">No expenses found. Add a new expense to get started!</p>
+          <Link to="/expenses/add" className="no-data-btn">
+            <i className="fas fa-plus-circle"></i> Add Your First Expense
           </Link>
         </div>
       )}
