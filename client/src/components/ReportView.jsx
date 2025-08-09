@@ -99,6 +99,9 @@ const ReportView = () => {
       return <Alert variant="info">No expense data available for the selected period</Alert>;
     }
 
+    // Calculate total amount for percentage calculations
+    const totalAmount = data.reduce((sum, item) => sum + item.total, 0);
+
     // Prepare chart data
     const chartData = {
       labels: data.map(item => item._id || 'Uncategorized'),
@@ -109,74 +112,219 @@ const ReportView = () => {
             '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
             '#EC4899', '#06B6D4', '#F97316', '#6366F1', '#14B8A6'
           ],
+          borderWidth: 0,
+          hoverBorderWidth: 3,
+          hoverBorderColor: '#ffffff',
         },
       ],
     };
 
     return (
       <>
-        <Form onSubmit={handleFilter} className="filter-form">
-          <div className="d-flex gap-3">
-            <Form.Group className="flex-grow-1">
-              <Form.Label>Start Date</Form.Label>
-              <Form.Control
-                type="date"
-                value={dateRange.startDate}
-                onChange={(e) => setDateRange({...dateRange, startDate: e.target.value})}
-              />
-            </Form.Group>
-            <Form.Group className="flex-grow-1">
-              <Form.Label>End Date</Form.Label>
-              <Form.Control
-                type="date"
-                value={dateRange.endDate}
-                onChange={(e) => setDateRange({...dateRange, endDate: e.target.value})}
-              />
-            </Form.Group>
-            <div className="d-flex align-items-end">
-              <Button type="submit" variant="primary" className="filter-button mb-3">Apply Filter</Button>
+        <Form onSubmit={handleFilter} className="filter-form mb-4">
+          <div className="row g-3 align-items-end">
+            <div className="col-md-4">
+              <Form.Group>
+                <Form.Label className="fw-semibold">Start Date</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={dateRange.startDate}
+                  onChange={(e) => setDateRange({...dateRange, startDate: e.target.value})}
+                  className="form-control-modern"
+                />
+              </Form.Group>
+            </div>
+            <div className="col-md-4">
+              <Form.Group>
+                <Form.Label className="fw-semibold">End Date</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={dateRange.endDate}
+                  onChange={(e) => setDateRange({...dateRange, endDate: e.target.value})}
+                  className="form-control-modern"
+                />
+              </Form.Group>
+            </div>
+            <div className="col-md-4">
+              <Button 
+                type="submit" 
+                variant="primary" 
+                className="filter-button w-100"
+                size="lg"
+              >
+                <i className="fas fa-filter me-2"></i>
+                Apply Filter
+              </Button>
             </div>
           </div>
         </Form>
-        
-        <div className="row">
-          <div className="col-md-6">
-            <div className="chart-container" style={{ height: '350px' }}>
-              <Pie data={chartData} options={{ 
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    position: 'bottom',
-                    labels: {
-                      padding: 20,
-                      usePointStyle: true
-                    }
-                  }
-                }
-              }} />
+
+        {/* Summary Cards */}
+        <div className="row mb-4">
+          <div className="col-md-4">
+            <div className="summary-card">
+              <div className="summary-card-icon">
+                <i className="fas fa-dollar-sign"></i>
+              </div>
+              <div className="summary-card-content">
+                <h3 className="summary-amount">${totalAmount.toFixed(2)}</h3>
+                <p className="summary-label">Total Expenses</p>
+              </div>
             </div>
           </div>
-          <div className="col-md-6">
-            <Card className="report-card">
-              <Card.Header className="bg-white">Expense Breakdown by Category</Card.Header>
-              <Card.Body className="p-0">
+          <div className="col-md-4">
+            <div className="summary-card">
+              <div className="summary-card-icon">
+                <i className="fas fa-tags"></i>
+              </div>
+              <div className="summary-card-content">
+                <h3 className="summary-amount">{data.length}</h3>
+                <p className="summary-label">Categories</p>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-4">
+            <div className="summary-card">
+              <div className="summary-card-icon">
+                <i className="fas fa-receipt"></i>
+              </div>
+              <div className="summary-card-content">
+                <h3 className="summary-amount">{data.reduce((sum, item) => sum + item.count, 0)}</h3>
+                <p className="summary-label">Total Transactions</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Chart and Table Section */}
+        <div className="row g-4 reports-row">
+          <div className="col-lg-5">
+            <Card className="chart-card">
+              <Card.Header className="chart-header">
+                <h5 className="mb-0 fw-semibold">
+                  <i className="fas fa-chart-pie me-2 text-primary"></i>
+                  Expense Distribution
+                </h5>
+              </Card.Header>
+              <Card.Body>
+                <div style={{ width: '100%', height: '350px', position: 'relative' }}>
+                  <Pie 
+                    data={chartData} 
+                    options={{ 
+                      maintainAspectRatio: false,
+                      responsive: true,
+                      plugins: {
+                        legend: {
+                          position: 'bottom',
+                          labels: {
+                            padding: 15,
+                            usePointStyle: true,
+                            font: {
+                              size: 10,
+                              family: "'Inter', sans-serif"
+                            },
+                            generateLabels: function(chart) {
+                              const data = chart.data;
+                              if (data.labels.length && data.datasets.length) {
+                                return data.labels.map((label, i) => {
+                                  const value = data.datasets[0].data[i];
+                                  const percentage = ((value / totalAmount) * 100).toFixed(1);
+                                  return {
+                                    text: `${label} (${percentage}%)`,
+                                    fillStyle: data.datasets[0].backgroundColor[i],
+                                    strokeStyle: data.datasets[0].backgroundColor[i],
+                                    lineWidth: 0,
+                                    pointStyle: 'circle',
+                                    hidden: false,
+                                    index: i
+                                  };
+                                });
+                              }
+                              return [];
+                            }
+                          }
+                        },
+                        tooltip: {
+                          callbacks: {
+                            label: function(context) {
+                              const value = context.parsed;
+                              const percentage = ((value / totalAmount) * 100).toFixed(1);
+                              return `${context.label}: $${value.toFixed(2)} (${percentage}%)`;
+                            }
+                          }
+                        }
+                      }
+                    }} 
+                  />
+                </div>
+              </Card.Body>
+            </Card>
+          </div>
+          
+          <div className="col-lg-7">
+            <Card className="table-card">
+              <Card.Header className="table-header">
+                <h5 className="mb-0 fw-semibold">
+                  <i className="fas fa-list me-2 text-success"></i>
+                  Expense Breakdown by Category
+                </h5>
+              </Card.Header>
+              <Card.Body>
                 <div className="table-responsive">
-                  <table className="table table-striped mb-0 report-table">
+                  <table className="table table-hover mb-0 modern-table">
                     <thead>
                       <tr>
-                        <th>Category</th>
-                        <th className="text-end">Amount</th>
-                        <th className="text-end">Transactions</th>
+                        <th style={{ width: '40%' }}>Category</th>
+                        <th style={{ width: '20%' }} className="text-end">Amount</th>
+                        <th style={{ width: '20%' }} className="text-end">%</th>
+                        <th style={{ width: '20%' }} className="text-end">Transactions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {data.map((item, index) => (
-                        <tr key={index}>
-                          <td>{item._id || 'Uncategorized'}</td>
-                          <td className="text-end category-amount">${item.total.toFixed(2)}</td>
-                          <td className="text-end">{item.count}</td>
-                        </tr>
-                      ))}
+                      {data
+                        .sort((a, b) => b.total - a.total)
+                        .map((item, index) => {
+                          const percentage = ((item.total / totalAmount) * 100).toFixed(1);
+                          const colors = [
+                            '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
+                            '#EC4899', '#06B6D4', '#F97316', '#6366F1', '#14B8A6'
+                          ];
+                          const color = colors[index % colors.length];
+                          
+                          return (
+                            <tr key={index} className="table-row-hover">
+                              <td className="py-3">
+                                <div className="d-flex align-items-center">
+                                  <div 
+                                    className="category-color-indicator me-3"
+                                    style={{ backgroundColor: color }}
+                                  ></div>
+                                  <div className="category-info">
+                                    <span className="fw-semibold category-name">{item._id || 'Uncategorized'}</span>
+                                    <div className="percentage-bar-container mt-1">
+                                      <div 
+                                        className="percentage-bar"
+                                        style={{ 
+                                          width: `${percentage}%`,
+                                          backgroundColor: color
+                                        }}
+                                      ></div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="py-3 text-end">
+                                <span className="amount-text fw-bold">${item.total.toFixed(2)}</span>
+                              </td>
+                              <td className="py-3 text-end">
+                                <span className="percentage-badge">{percentage}%</span>
+                              </td>
+                              <td className="py-3 text-end">
+                                <span className="count-text fw-semibold">{item.count}</span>
+                              </td>
+                            </tr>
+                          );
+                        })}
                     </tbody>
                   </table>
                 </div>

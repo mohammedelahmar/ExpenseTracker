@@ -1,6 +1,6 @@
 /* Report View Styling */
 .report-container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 0 1rem;
 }
@@ -14,6 +14,7 @@
 .report-title {
   font-weight: 600;
   color: #2c3e50;
+  font-size: 2rem;
 }
 
 .report-card {
@@ -43,124 +44,375 @@
   margin-bottom: 2rem;
 }
 
+/* Filter Form Styling */
 .filter-form {
-  background-color: #f8f9fa;
-  border-radius: 12px;
-  padding: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  padding: 2rem;
   margin-bottom: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  color: white;
 }
 
-.filter-form .form-control {
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
-  padding: 0.75rem 1rem;
+.filter-form .form-label {
+  color: white;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
 }
 
-.filter-form .form-control:focus {
-  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+.form-control-modern {
+  border-radius: 12px;
+  border: none;
+  padding: 0.875rem 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.form-control-modern:focus {
+  background: white;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3);
+  border: none;
 }
 
 .filter-button {
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
-  font-weight: 500;
+  border-radius: 12px;
+  padding: 0.875rem 1.5rem;
+  font-weight: 600;
+  border: none;
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.report-table {
+.filter-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(238, 90, 36, 0.4);
+  background: linear-gradient(135deg, #ee5a24, #ff6b6b);
+}
+
+/* Summary Cards */
+.summary-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.summary-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.summary-card-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.summary-card-icon i {
+  font-size: 24px;
+  color: white;
+}
+
+.summary-card-content {
+  flex: 1;
+}
+
+.summary-amount {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  color: #2c3e50;
+  line-height: 1.2;
+}
+
+.summary-label {
+  font-size: 0.875rem;
+  color: #6c757d;
+  margin: 0;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Chart and Table Cards */
+.chart-card, .table-card {
+  border: none;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  height: 100%;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-card .card-body, .table-card .card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Fix chart display */
+.chart-card .card-body {
+  padding: 1.5rem;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Fix table display */
+.table-card .card-body {
+  padding: 0;
+  overflow: visible; /* Changed from auto to prevent constraint */
+}
+
+.table-responsive {
+  flex: 1;
+  overflow-x: auto;
+  min-height: 350px; /* Ensure minimum height matches chart */
   width: 100%;
 }
 
-.report-table th {
-  background-color: #f8f9fa;
-  font-weight: 600;
+.chart-header, .table-header {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 1.25rem 1.5rem;
+}
+
+.chart-header h5, .table-header h5 {
   color: #495057;
-  border-top: none;
+  font-size: 1.1rem;
 }
 
-.report-table td, .report-table th {
-  padding: 1rem;
-  vertical-align: middle;
+/* Modern Table Styling - ensure it takes full width */
+.modern-table {
+  font-size: 0.95rem;
+  width: 100%;
+  table-layout: auto;
+  min-width: 600px;
+  margin-bottom: 0;
 }
 
-.report-table tbody tr:hover {
-  background-color: rgba(0,0,0,.03);
+/* Add more spacing to table cells for better readability */
+.modern-table thead th {
+  padding: 1.25rem 1.25rem;
+  background: #f8f9fa;
 }
 
-.category-amount {
-  font-weight: 600;
+.modern-table tbody td {
+  padding: 1.5rem 1.25rem;
+}
+
+/* Make table columns more appropriate */
+.table-row-hover:hover {
+  background-color: rgba(102, 126, 234, 0.05);
+}
+
+.category-color-indicator {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.category-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.category-name {
+  font-size: 1rem;
   color: #2c3e50;
+  display: block;
+  margin-bottom: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.chart-legend {
-  margin-top: 1.5rem;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 1rem;
+.percentage-bar-container {
+  width: 100%;
+  height: 6px;
+  background-color: #e9ecef;
+  border-radius: 3px;
+  overflow: hidden;
 }
 
-.legend-item {
+.percentage-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.amount-text {
+  color: #2c3e50;
+  font-size: 1.1rem;
+}
+
+.count-text {
+  color: #6c757d;
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.percentage-badge {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-block;
+  min-width: 50px;
+  text-align: center;
+}
+
+/* Chart and Table Layout Improvements */
+.chart-card .card-body {
+  padding: 1.5rem;
   display: flex;
   align-items: center;
-  font-size: 0.875rem;
+  justify-content: center;
 }
 
-.legend-color {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
-  margin-right: 6px;
+.table-card .card-body {
+  padding: 0;
+  overflow: auto;
 }
 
-.info-panel {
-  background-color: rgba(13, 110, 253, 0.08);
-  border-left: 4px solid #0d6efd;
-  border-radius: 6px;
-  padding: 1rem 1.5rem;
-  margin-bottom: 2rem;
+/* Better responsive grid layout */
+@media (min-width: 992px) {
+  .col-lg-5 {
+    flex: 0 0 auto;
+    width: 40%;
+  }
+  
+  .col-lg-7 {
+    flex: 0 0 auto;
+    width: 60%;
+  }
+  
+  /* Ensure equal height for both cards */
+  .reports-row {
+    display: flex;
+    min-height: 500px;
+  }
+  
+  .reports-row > div {
+    display: flex;
+    flex-direction: column;
+  }
 }
 
-.back-button {
-  border-radius: 8px;
-  transition: all 0.2s;
+/* Responsive Design */
+@media (max-width: 991px) {
+  .chart-card {
+    margin-bottom: 2rem;
+  }
+  
+  .col-lg-5,
+  .col-lg-7 {
+    width: 100%;
+  }
 }
 
-.back-button:hover {
-  background-color: #6c757d;
-  color: white;
-  transform: translateY(-2px);
-}
-
-/* Custom chart colors - more harmonious palette */
-.chart-colors-category {
-  --color1: #3B82F6;
-  --color2: #10B981;
-  --color3: #F59E0B;
-  --color4: #EF4444;
-  --color5: #8B5CF6;
-  --color6: #EC4899;
-  --color7: #06B6D4;
-  --color8: #F97316;
-}
-
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .report-container {
     padding: 0 0.5rem;
   }
   
   .filter-form {
-    padding: 1rem;
+    padding: 1.5rem;
   }
   
-  .d-flex.gap-3 {
+  .report-title {
+    font-size: 1.5rem;
+  }
+  
+  .summary-card {
+    margin-bottom: 1rem;
+  }
+  
+  .summary-card-icon {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .summary-amount {
+    font-size: 1.5rem;
+  }
+  
+  .modern-table {
+    font-size: 0.85rem;
+  }
+  
+  .modern-table thead th,
+  .modern-table tbody td {
+    padding: 1rem 0.75rem;
+  }
+  
+  .category-name {
+    font-size: 0.9rem;
+  }
+  
+  .amount-text {
+    font-size: 1rem;
+  }
+  
+  .percentage-badge {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .filter-form .row {
+    margin: 0;
+  }
+  
+  .filter-form .col-md-4 {
+    padding: 0;
+    margin-bottom: 1rem;
+  }
+  
+  .summary-card {
+    text-align: center;
     flex-direction: column;
-    gap: 1rem !important;
   }
   
-  .filter-button {
-    width: 100%;
+  .summary-card-icon {
+    margin-right: 0;
+    margin-bottom: 1rem;
+  }
+  
+  .modern-table thead th,
+  .modern-table tbody td {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .modern-table {
+    font-size: 0.8rem;
+  }
+  
+  .category-name {
+    font-size: 0.85rem;
+  }
+  
+  .amount-text {
+    font-size: 0.9rem;
   }
 }
