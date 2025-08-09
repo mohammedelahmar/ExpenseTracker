@@ -1,22 +1,25 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
-import '../styles/ExpenseForm.css'; // You'll need to create this CSS file
+import '../styles/ExpenseForm.css';
 import ReceiptUpload from './ReceiptUpload';
 
-const ExpenseForm = ({ editExpense = null, onSubmitSuccess }) => {
+const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
   const { user } = useContext(AuthContext);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     amount: '',
     category: '',
-    date: new Date().toISOString().split('T')[0], // Default to today
+    date: new Date().toISOString().split('T')[0],
     description: '',
     receipt: ''
   });
   const [receiptPreview, setReceiptPreview] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   // Load categories when component mounts
   useEffect(() => {
@@ -48,27 +51,61 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess }) => {
         receipt: editExpense.receipt || ''
       });
       
-      // Set receipt preview if available
       if (editExpense.receipt) {
         setReceiptPreview(`http://localhost:5000/${editExpense.receipt}`);
       }
     }
   }, [editExpense]);
 
+  const validateField = (name, value) => {
+    const errors = { ...fieldErrors };
+    
+    switch (name) {
+      case 'amount':
+        if (!value || parseFloat(value) <= 0) {
+          errors.amount = 'Amount must be greater than 0';
+        } else {
+          delete errors.amount;
+        }
+        break;
+      case 'category':
+        if (!value) {
+          errors.category = 'Please select a category';
+        } else {
+          delete errors.category;
+        }
+        break;
+      case 'description':
+        if (!value || value.trim().length < 3) {
+          errors.description = 'Description must be at least 3 characters';
+        } else {
+          delete errors.description;
+        }
+        break;
+      default:
+        break;
+    }
+    
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    validateField(name, value);
+    
+    // Clear messages when user starts typing
+    if (error) setError('');
+    if (success) setSuccess('');
   };
 
-  // Handle receipt processing
   const handleReceiptProcessed = (receiptData) => {
     console.log('Receipt data received:', receiptData);
     
-    // Format the date if it exists
     let formattedDate = formData.date;
     if (receiptData.date) {
       try {
-        // Try to parse and format the date
         const parsedDate = new Date(receiptData.date);
         if (!isNaN(parsedDate)) {
           formattedDate = parsedDate.toISOString().split('T')[0];
@@ -78,7 +115,6 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess }) => {
       }
     }
     
-    // Update form with extracted data
     setFormData(prevData => {
       const newData = {
         ...prevData,
@@ -88,17 +124,17 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess }) => {
         date: formattedDate,
         receipt: receiptData.receipt || prevData.receipt
       };
-      console.log('Updated form data:', newData);
       return newData;
     });
     
-    // Set receipt preview
     if (receiptData.receipt) {
       setReceiptPreview(`http://localhost:5000/${receiptData.receipt}`);
     }
+    
+    setSuccess('Receipt processed successfully!');
+    setTimeout(() => setSuccess(''), 3000);
   };
   
-  // Handle receipt processing error
   const handleReceiptError = (error) => {
     console.error("Receipt processing error:", error);
     setError('Error processing receipt. Please try again or enter details manually.');
@@ -108,6 +144,18 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess }) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
+
+    // Validate all fields
+    const isValid = Object.keys(formData).every(key => 
+      key === 'receipt' || validateField(key, formData[key])
+    );
+
+    if (!isValid) {
+      setLoading(false);
+      setError('Please fix the errors above');
+      return;
+    }
 
     try {
       const config = {
@@ -116,20 +164,20 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess }) => {
 
       let response;
       if (editExpense) {
-        // Update existing expense
         response = await axios.put(
           `/api/expenses/${editExpense._id}`,
           formData,
           config
         );
+        setSuccess('Expense updated successfully!');
       } else {
-        // Create new expense
         response = await axios.post('/api/expenses', formData, config);
+        setSuccess('Expense added successfully!');
       }
 
       setLoading(false);
+      setIsSubmitted(true);
       
-      // Reset form after successful submission
       if (!editExpense) {
         setFormData({
           amount: '',
@@ -141,9 +189,10 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess }) => {
         setReceiptPreview(null);
       }
       
-      // Notify parent component of successful submission
       if (onSubmitSuccess) {
-        onSubmitSuccess(response.data);
+        setTimeout(() => {
+          onSubmitSuccess(response.data);
+        }, 1500);
       }
     } catch (err) {
       setLoading(false);
@@ -155,114 +204,301 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess }) => {
     }
   };
 
+  const clearForm = () => {
+    setFormData({
+      amount: '',
+      category: '',
+      date: new Date().toISOString().split('T')[0],
+      description: '',
+      receipt: ''
+    });
+    setReceiptPreview(null);
+    setFieldErrors({});
+    setError('');
+    setSuccess('');
+  };
+
+  const removeReceipt = () => {
+    setFormData({ ...formData, receipt: '' });
+    setReceiptPreview(null);
+    setSuccess('Receipt removed successfully');
+    setTimeout(() => setSuccess(''), 2000);
+  };
+
   return (
-    <div className="expense-form-container card">
-      <h2>{editExpense ? 'Edit Expense' : 'Add New Expense'}</h2>
-      
-      {error && <div className="alert alert-danger">{error}</div>}
-      
-      <form onSubmit={handleSubmit}>
-        {/* Receipt Upload Component */}
-        <div className="form-group receipt-upload-container">
-          <ReceiptUpload 
-            onProcessed={handleReceiptProcessed} 
-            onError={(err) => setError('Receipt processing failed')} 
-          />
+    <div className="expense-form-wrapper">
+      <div className={`expense-form-container card ${isSubmitted ? 'form-success' : ''}`}>
+        {/* Header with Back Button */}
+        <div className="form-header">
+          {onGoBack && (
+            <button 
+              type="button" 
+              className="btn-back"
+              onClick={onGoBack}
+              aria-label="Go back"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+              Back
+            </button>
+          )}
+          <h2>
+            <span className="form-icon">
+              {editExpense ? '✏️' : '💰'}
+            </span>
+            {editExpense ? 'Edit Expense' : 'Add New Expense'}
+          </h2>
+          <div className="form-actions-header">
+            {!editExpense && (
+              <button 
+                type="button" 
+                className="btn-secondary btn-clear"
+                onClick={clearForm}
+                title="Clear form"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                </svg>
+                Clear
+              </button>
+            )}
+          </div>
         </div>
         
-        <div className="form-group">
-          <label htmlFor="amount">Amount</label>
-          <input
-            type="number"
-            step="0.01"
-            id="amount"
-            name="amount"
-            className="form-control"
-            value={formData.amount}
-            onChange={handleChange}
-            required
-            min="0.01"
-          />
+        {/* Progress Indicator */}
+        <div className="form-progress">
+          <div className="progress-bar">
+            <div 
+              className="progress-fill" 
+              style={{ 
+                width: `${Object.values(formData).filter(val => val && val !== '').length / 4 * 100}%` 
+              }}
+            ></div>
+          </div>
+          <span className="progress-text">
+            {Object.values(formData).filter(val => val && val !== '').length}/4 fields completed
+          </span>
         </div>
-        
-        <div className="form-group">
-          <label htmlFor="category">Category</label>
-          <select
-            id="category"
-            name="category"
-            className="form-control"
-            value={formData.category}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Select a category</option>
-            {categories.map(category => (
-              <option key={category._id} value={category.name}>
-                {category.name}
-              </option>
-            ))}
-            <option value="Other">Other</option>
-          </select>
-        </div>
-        
-        <div className="form-group">
-          <label htmlFor="date">Date</label>
-          <input
-            type="date"
-            id="date"
-            name="date"
-            className="form-control"
-            value={formData.date}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        
-        <div className="form-group">
-          <label htmlFor="description">Description</label>
-          <textarea
-            id="description"
-            name="description"
-            className="form-control"
-            value={formData.description}
-            onChange={handleChange}
-            required
-            rows="3"
-          ></textarea>
-        </div>
-        
-        {/* Hidden field for receipt path */}
-        <input
-          type="hidden"
-          id="receipt"
-          name="receipt"
-          value={formData.receipt}
-        />
-        
-        {/* Receipt Preview */}
-        {receiptPreview && (
-          <div className="form-group">
-            <label>Receipt Image</label>
-            <div className="receipt-preview">
-              <img 
-                src={receiptPreview} 
-                alt="Receipt" 
-                style={{ maxWidth: '100%', maxHeight: '150px' }} 
-              />
-            </div>
+
+        {/* Alert Messages */}
+        {error && (
+          <div className="alert alert-danger">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="15" y1="9" x2="9" y2="15"/>
+              <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="alert alert-success">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22,4 12,14.01 9,11.01"/>
+            </svg>
+            {success}
           </div>
         )}
         
-        <div className="form-actions">
-          <button 
-            type="submit" 
-            className="btn btn-primary"
-            disabled={loading}
-          >
-            {loading ? 'Saving...' : (editExpense ? 'Update Expense' : 'Add Expense')}
-          </button>
-        </div>
-      </form>
+        <form onSubmit={handleSubmit} className="expense-form">
+          {/* Receipt Upload Component */}
+          <div className="form-group receipt-upload-container">
+            <div className="form-group-header">
+              <label>📄 Receipt Upload (Optional)</label>
+              <span className="form-hint">Upload a receipt to auto-fill form data</span>
+            </div>
+            <ReceiptUpload 
+              onProcessed={handleReceiptProcessed} 
+              onError={handleReceiptError} 
+            />
+          </div>
+          
+          {/* Amount Field */}
+          <div className={`form-group ${fieldErrors.amount ? 'has-error' : ''}`}>
+            <label htmlFor="amount">
+              💵 Amount
+              <span className="required">*</span>
+            </label>
+            <div className="input-wrapper">
+              <span className="input-prefix">$</span>
+              <input
+                type="number"
+                step="0.01"
+                id="amount"
+                name="amount"
+                className="form-control"
+                value={formData.amount}
+                onChange={handleChange}
+                required
+                min="0.01"
+                placeholder="0.00"
+              />
+            </div>
+            {fieldErrors.amount && (
+              <div className="field-error">{fieldErrors.amount}</div>
+            )}
+          </div>
+          
+          {/* Category Field */}
+          <div className={`form-group ${fieldErrors.category ? 'has-error' : ''}`}>
+            <label htmlFor="category">
+              🏷️ Category
+              <span className="required">*</span>
+            </label>
+            <select
+              id="category"
+              name="category"
+              className="form-control"
+              value={formData.category}
+              onChange={handleChange}
+              required
+            >
+              <option value="">Choose a category...</option>
+              {categories.map(category => (
+                <option key={category._id} value={category.name}>
+                  {category.name}
+                </option>
+              ))}
+              <option value="Other">Other</option>
+            </select>
+            {fieldErrors.category && (
+              <div className="field-error">{fieldErrors.category}</div>
+            )}
+          </div>
+          
+          {/* Date Field */}
+          <div className="form-group">
+            <label htmlFor="date">
+              📅 Date
+              <span className="required">*</span>
+            </label>
+            <input
+              type="date"
+              id="date"
+              name="date"
+              className="form-control"
+              value={formData.date}
+              onChange={handleChange}
+              required
+              max={new Date().toISOString().split('T')[0]}
+            />
+          </div>
+          
+          {/* Description Field */}
+          <div className={`form-group ${fieldErrors.description ? 'has-error' : ''}`}>
+            <label htmlFor="description">
+              📝 Description
+              <span className="required">*</span>
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              className="form-control"
+              value={formData.description}
+              onChange={handleChange}
+              required
+              rows="3"
+              placeholder="What was this expense for?"
+              maxLength="500"
+            ></textarea>
+            <div className="character-count">
+              {formData.description.length}/500 characters
+            </div>
+            {fieldErrors.description && (
+              <div className="field-error">{fieldErrors.description}</div>
+            )}
+          </div>
+          
+          {/* Hidden field for receipt path */}
+          <input
+            type="hidden"
+            id="receipt"
+            name="receipt"
+            value={formData.receipt}
+          />
+          
+          {/* Receipt Preview */}
+          {receiptPreview && (
+            <div className="form-group">
+              <div className="receipt-preview-header">
+                <label>🖼️ Receipt Preview</label>
+                <button 
+                  type="button" 
+                  className="btn-remove-receipt"
+                  onClick={removeReceipt}
+                  title="Remove receipt"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+              <div className="receipt-preview">
+                <img 
+                  src={receiptPreview} 
+                  alt="Receipt" 
+                  loading="lazy"
+                />
+              </div>
+            </div>
+          )}
+          
+          {/* Form Actions */}
+          <div className="form-actions">
+            <div className="form-actions-left">
+              {!editExpense && (
+                <button 
+                  type="button" 
+                  className="btn btn-outline"
+                  onClick={clearForm}
+                  disabled={loading}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                  </svg>
+                  Clear Form
+                </button>
+              )}
+            </div>
+            <div className="form-actions-right">
+              {onGoBack && (
+                <button 
+                  type="button" 
+                  className="btn btn-secondary"
+                  onClick={onGoBack}
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+              )}
+              <button 
+                type="submit" 
+                className="btn btn-primary"
+                disabled={loading || Object.keys(fieldErrors).length > 0}
+              >
+                {loading ? (
+                  <>
+                    <div className="spinner"></div>
+                    {editExpense ? 'Updating...' : 'Adding...'}
+                  </>
+                ) : (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                      <polyline points="22,4 12,14.01 9,11.01"/>
+                    </svg>
+                    {editExpense ? 'Update Expense' : 'Add Expense'}
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
