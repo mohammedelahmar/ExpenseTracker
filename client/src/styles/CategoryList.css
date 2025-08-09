@@ -101,10 +101,13 @@
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 28px;
   margin: 0;
+  align-items: start;
+  justify-content: center;
 }
 
 .col-md-4 {
   margin: 0;
+  width: 100%;
 }
 
 .mb-3 {
@@ -112,7 +115,8 @@
 }
 
 .card {
-  height: 100%;
+  height: auto;
+  min-height: 180px;
   border: none;
   border-radius: var(--card-radius);
   box-shadow: var(--card-shadow);
@@ -121,6 +125,8 @@
   background: linear-gradient(145deg, #ffffff 0%, #fafbff 100%);
   position: relative;
   border-left-width: 0 !important;
+  width: 100%;
+  margin: 0;
 }
 
 .card::before {
@@ -147,6 +153,10 @@
   padding: 28px 24px;
   position: relative;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 140px;
 }
 
 .card-title {
@@ -157,16 +167,17 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  flex: 1;
 }
 
 .card-title i {
-  font-size: 24px;
-  width: 48px;
-  height: 48px;
+  font-size: 28px;
+  width: 52px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 14px;
+  border-radius: 16px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 100%);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -202,17 +213,19 @@
   opacity: 1;
 }
 
-/* Button group */
+/* Button group positioning */
 .btn-group {
   display: flex;
   gap: 12px;
-  margin-top: 0;
+  margin-top: auto;
   justify-content: flex-end;
+  align-self: flex-end;
+  width: 100%;
 }
 
 .btn-sm {
-  padding: 10px 18px;
-  font-size: 0.875rem;
+  padding: 12px 20px;
+  font-size: 0.9rem;
   border-radius: var(--button-radius);
   font-weight: 600;
   transition: var(--transition);
@@ -379,17 +392,22 @@
     padding: 12px 20px;
   }
   
+  .card {
+    min-height: 160px;
+  }
+  
   .card-title {
     font-size: 18px;
   }
 
   .btn-sm {
-    padding: 8px 14px;
-    font-size: 0.8rem;
+    padding: 10px 16px;
+    font-size: 0.85rem;
   }
 
   .card-body {
-    padding: 20px;
+    padding: 24px 20px;
+    min-height: 120px;
   }
 
   .card-body .d-flex.justify-content-between {
@@ -400,6 +418,7 @@
 
   .btn-group {
     justify-content: center;
+    gap: 10px;
   }
 }
 
@@ -415,8 +434,33 @@
   }
 
   .card-title i {
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
+    width: 44px;
+    height: 44px;
+    font-size: 22px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1199px) {
+  .row {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .row {
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  
+  .card {
+    min-height: 200px;
+  }
+  
+  .card-body {
+    padding: 32px 28px;
+    min-height: 160px;
   }
 }
