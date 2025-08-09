@@ -4,95 +4,34 @@ import { AuthContext } from '../context/AuthContext';
 import '../styles/Navbar.css';
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isHidden, setIsHidden] = useState(false);               // NEW
-  const lastScrollY = useRef(typeof window !== 'undefined' ? window.scrollY : 0); // NEW
-  const dropdownRef = useRef(null); // NEW
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('sidebarCollapsed') || 'false');
+    } catch {
+      return false;
+    }
+  });
+  const [isOpen, setIsOpen] = useState(false); // mobile drawer open
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Apply body class for layout shift (content indentation)
   useEffect(() => {
-    // Replace simple scroll listener with direction-aware handler
-    let ticking = false;
-    const onScroll = () => {
-      const current = window.scrollY;
+    document.body.classList.add('with-sidebar');
+    return () => document.body.classList.remove('with-sidebar');
+  }, []);
 
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          setIsScrolled(current > 10);
+  // Persist collapsed state + body class
+  useEffect(() => {
+    localStorage.setItem('sidebarCollapsed', JSON.stringify(collapsed));
+    document.body.classList.toggle('sidebar-collapsed', collapsed);
+  }, [collapsed]);
 
-          // Only hide when menu isn't open and user has scrolled past a threshold
-          if (!isOpen && current > 100) {
-            if (current > lastScrollY.current) {
-              // Scrolling down
-              setIsHidden(true);
-            } else {
-              // Scrolling up
-              setIsHidden(false);
-            }
-          } else {
-            setIsHidden(false);
-          }
-
-          lastScrollY.current = current;
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [isOpen]);
-
-  // Ensure visibility on route change and when toggling menu
+  // Close mobile drawer on route change
   useEffect(() => {
     setIsOpen(false);
-    setIsDropdownOpen(false);
-    setIsHidden(false);                                          // NEW
   }, [location]);
-
-  // Keep body scroll lock in sync with isOpen (fixes "stuck scroll" bug)
-  useEffect(() => {
-    document.body.classList.toggle('navbar-open', isOpen);
-    if (isOpen) setIsHidden(false);                              // NEW
-    return () => document.body.classList.remove('navbar-open');
-  }, [isOpen]);
-
-  // Close dropdown on outside click / Esc
-  useEffect(() => {
-    const onClick = (e) => {
-      if (isDropdownOpen && dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
-    const onKey = (e) => {
-      if (e.key === 'Escape') {
-        setIsDropdownOpen(false);
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', onClick);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onClick);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [isDropdownOpen]);
-
-  const toggleMenu = () => {
-    setIsOpen(prev => !prev);
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-    setIsOpen(false);
-    setIsDropdownOpen(false);
-  };
 
   const navigationItems = [
     { path: '/dashboard', label: 'Dashboard', icon: 'fas fa-tachometer-alt' },
@@ -104,103 +43,86 @@ const Navbar = () => {
     { path: '/subscriptions', label: 'Subscriptions', icon: 'fas fa-sync-alt' }
   ];
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
     <>
-      <nav className={`navbar ${isScrolled ? 'scrolled' : ''} ${isHidden ? 'navbar--hidden' : ''}`}>
-        <div className="navbar-container">
-          <Link to="/" className="navbar-logo" onClick={() => setIsOpen(false)}>
-            <div className="logo-icon">
+      {/* Mobile toggle button */}
+      <button
+        className="sidebar-mobile-toggle"
+        aria-label="Open menu"
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen(v => !v)}
+      >
+        <span className="hamburger"></span>
+      </button>
+
+      <aside className={`sidebar ${collapsed ? 'collapsed' : ''} ${isOpen ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <Link to="/" className="sidebar-brand">
+            <div className="brand-icon">
               <i className="fas fa-wallet"></i>
             </div>
-            <span className="logo-text">Expense Tracker</span>
+            <span className="brand-text">Expense Tracker</span>
           </Link>
 
-          <button 
-            className={`navbar-toggle ${isOpen ? 'active' : ''}`} 
-            onClick={toggleMenu}
-            aria-label="Toggle navigation menu"
-            aria-expanded={isOpen}
+          <button
+            className="collapse-toggle"
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            onClick={() => setCollapsed(v => !v)}
+            title={collapsed ? 'Expand' : 'Collapse'}
           >
-            <span className="navbar-toggle-icon"></span>
+            <i className={`fas ${collapsed ? 'fa-angle-right' : 'fa-angle-left'}`}></i>
           </button>
-
-          <div className={`navbar-menu ${isOpen ? 'active' : ''}`}>
-            {user ? (
-              <>
-                <ul className="navbar-nav">
-                  {navigationItems.map((item) => (
-                    <li key={item.path} className="nav-item">
-                      <NavLink 
-                        to={item.path} 
-                        className={({ isActive }) => 
-                          `nav-link ${isActive ? 'active' : ''}`
-                        }
-                        onClick={() => setIsOpen(false)}
-                      >
-                        <i className={item.icon}></i>
-                        <span>{item.label}</span>
-                      </NavLink>
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="navbar-user">
-                  <div className="user-info">
-                    {/* Make the avatar the only trigger for the menu */}
-                    <div
-                      className={`dropdown ${isDropdownOpen ? 'open' : ''}`}
-                      ref={dropdownRef}
-                    >
-                      <button
-                        className="icon-only-toggle"
-                        aria-label="Account menu"
-                        aria-expanded={isDropdownOpen}
-                        aria-haspopup="menu"
-                        onClick={() => setIsDropdownOpen(v => !v)}
-                      >
-                        <div className="user-avatar">
-                          <i className="fas fa-user"></i>
-                        </div>
-                      </button>
-
-                      <div className="dropdown-menu" role="menu">
-                        <Link to="/profile" className="dropdown-item" onClick={() => { setIsOpen(false); setIsDropdownOpen(false); }}>
-                          <i className="fas fa-user-circle"></i>
-                          <span>Profile</span>
-                        </Link>
-                        <Link to="/settings" className="dropdown-item" onClick={() => { setIsOpen(false); setIsDropdownOpen(false); }}>
-                          <i className="fas fa-cog"></i>
-                          <span>Settings</span>
-                        </Link>
-                        <div className="dropdown-divider"></div>
-                        <button onClick={handleLogout} className="dropdown-item logout-btn">
-                          <i className="fas fa-sign-out-alt"></i>
-                          <span>Logout</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Keep the greeting text; it’s not part of the trigger */}
-                    <span className="user-welcome">
-                      Hi, <strong>{user.username}</strong>
-                    </span>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="auth-buttons">
-                <Link to="/login" className="btn btn-outline" onClick={() => setIsOpen(false)}>
-                  Login
-                </Link>
-                <Link to="/register" className="btn btn-primary" onClick={() => setIsOpen(false)}>
-                  Get Started
-                </Link>
-              </div>
-            )}
-          </div>
         </div>
-      </nav>
-      {isOpen && <div className="navbar-overlay" onClick={() => setIsOpen(false)}></div>}
+
+        {user && (
+          <nav className="sidebar-nav">
+            <ul>
+              {navigationItems.map(item => (
+                <li key={item.path}>
+                  <NavLink
+                    to={item.path}
+                    className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+                  >
+                    <i className={item.icon}></i>
+                    <span className="link-text">{item.label}</span>
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
+
+        <div className="sidebar-footer">
+          {user ? (
+            <div className="sidebar-user">
+              <div className="user-avatar">
+                <i className="fas fa-user"></i>
+              </div>
+              <div className="user-meta">
+                <span className="user-greet">Hi,</span>
+                <span className="user-name">{user.username}</span>
+              </div>
+              <button className="logout-btn" onClick={handleLogout} title="Logout">
+                <i className="fas fa-sign-out-alt"></i>
+                <span className="link-text">Logout</span>
+              </button>
+            </div>
+          ) : (
+            <div className="sidebar-auth">
+              <Link to="/login" className="btn btn-outline">Login</Link>
+              <Link to="/register" className="btn btn-primary">Get Started</Link>
+            </div>
+          )}
+        </div>
+      </aside>
+
+      {/* Mobile overlay */}
+      {isOpen && <div className="sidebar-overlay" onClick={() => setIsOpen(false)}></div>}
     </>
   );
 };
