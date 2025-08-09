@@ -1,10 +1,6 @@
 {
-  "dependencies": {
-    "react-webcam": "^7.2.0"
-  },
-  "devDependencies": {
-    "autoprefixer": "^10.4.21",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.11"
-  }
+  "name": "expense-tracker-root",
+  "private": true,
+  "workspaces": [],
+  "license": "MIT"
 }

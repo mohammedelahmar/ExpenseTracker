@@ -75,8 +75,7 @@ const getExpenseById = async (id) => {
     
     console.log(`Fetching expense with ID: ${id} with token: ${token.substring(0, 10)}...`);
     
-    // Using absolute URL instead of relative URL
-    const response = await axios.get(`http://localhost:5000/api/expenses/${id}`, {
+    const response = await axios.get(`/api/expenses/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -88,18 +87,14 @@ const getExpenseById = async (id) => {
     console.error('Full error object:', error);
     
     if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
       console.error('Error response data:', error.response.data);
       console.error('Error response status:', error.response.status);
       console.error('Error response headers:', error.response.headers);
       return Promise.reject(error.response.data || { message: `Server error: ${error.response.status}` });
     } else if (error.request) {
-      // The request was made but no response was received
       console.error('Error request:', error.request);
       return Promise.reject({ message: 'No response from server. Check your network connection.' });
     } else {
-      // Something happened in setting up the request that triggered an Error
       console.error('Error message:', error.message);
       return Promise.reject({ message: error.message || 'Unknown error occurred' });
     }
@@ -137,16 +132,16 @@ const getChartData = async (period, customFilters = {}) => {
     
     // Map period to appropriate report endpoint
     if (period === 'monthly') {
-      endpoint = 'http://localhost:5000/api/reports/monthly';
+      endpoint = '/api/reports/monthly';
       // For monthly chart, we need year parameter
       const year = startDate ? new Date(startDate).getFullYear() : new Date().getFullYear();
       params = { ...params, year };
     } else if (period === 'category') {
-      endpoint = 'http://localhost:5000/api/reports/by-category';
+      endpoint = '/api/reports/by-category';
       if (startDate) params.startDate = startDate;
       if (endDate) params.endDate = endDate;
     } else if (period === 'trends') {
-      endpoint = 'http://localhost:5000/api/reports/trends';
+      endpoint = '/api/reports/trends';
     } else {
       throw new Error('Invalid chart period specified');
     }
@@ -156,7 +151,6 @@ const getChartData = async (period, customFilters = {}) => {
     
     // Transform data to format expected by charts
     if (period === 'monthly') {
-      // Monthly data needs to be transformed to labels and data arrays
       return {
         labels: response.data.map(item => {
           const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -165,7 +159,6 @@ const getChartData = async (period, customFilters = {}) => {
         data: response.data.map(item => item.total)
       };
     } else if (period === 'category') {
-      // Category data needs to be transformed to labels and data arrays
       return {
         labels: response.data.map(item => item._id || 'Uncategorized'),
         data: response.data.map(item => item.total)

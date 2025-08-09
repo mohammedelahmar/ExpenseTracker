@@ -1,7 +1,8 @@
 import axios from 'axios';
 import authService from './authService';
 
-const API_URL = 'http://localhost:5000/api/receipts';
+const API_BASE = process.env.REACT_APP_API_URL ? `${process.env.REACT_APP_API_URL}` : '';
+const API_URL = `${API_BASE}/api/receipts`;
 
 // Configure axios with auth token
 const configureRequest = () => {
