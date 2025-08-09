@@ -68,15 +68,17 @@
   z-index: 1;
 }
 
-/* Enhanced Header */
+/* Enhanced Header - Fixed positioning and visibility */
 .form-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-between; /* Changed from flex-start */
   padding: 32px 40px 24px;
   border-bottom: 1px solid var(--border-light);
-  background: linear-gradient(135deg, rgba(67, 97, 238, 0.02), rgba(72, 202, 228, 0.02));
+  background: var(--bg-white); /* Solid background */
   position: relative;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
 .form-header h2 {
@@ -88,6 +90,7 @@
   align-items: center;
   gap: 15px;
   flex: 1;
+  min-width: 250px;
 }
 
 .form-icon {
@@ -103,88 +106,47 @@
   display: flex;
   gap: 12px;
   align-items: center;
+  margin-left: auto;
 }
 
-/* Back Button */
+/* Back Button - Enhanced visibility and styling */
 .btn-back {
-  background: rgba(67, 97, 238, 0.1);
-  border: 1px solid rgba(67, 97, 238, 0.2);
+  background: white;
+  border: 2px solid var(--primary-color);
   color: var(--primary-color);
-  padding: 12px 20px;
+  padding: 14px 24px;
   border-radius: 50px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: var(--transition);
   text-decoration: none;
+  box-shadow: 0 2px 6px rgba(67, 97, 238, 0.2);
+  z-index: 10;
+  position: relative;
+  white-space: nowrap;
+  min-width: 100px;
 }
 
 .btn-back:hover {
-  background: rgba(67, 97, 238, 0.15);
-  border-color: rgba(67, 97, 238, 0.3);
-  transform: translateX(-2px);
+  background: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
 }
 
 .btn-back svg {
   transition: var(--transition-fast);
+  flex-shrink: 0;
 }
 
 .btn-back:hover svg {
-  transform: translateX(-2px);
+  transform: translateX(-3px);
 }
 
-/* Progress Indicator */
-.form-progress {
-  padding: 20px 40px;
-  background: rgba(72, 202, 228, 0.05);
-  border-bottom: 1px solid var(--border-light);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.progress-bar {
-  flex: 1;
-  height: 8px;
-  background: rgba(67, 97, 238, 0.1);
-  border-radius: 4px;
-  overflow: hidden;
-  position: relative;
-}
-
-.progress-fill {
-  height: 100%;
-  background: var(--gradient-primary);
-  border-radius: 4px;
-  transition: width 0.5s ease;
-  position: relative;
-}
-
-.progress-fill::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  animation: shimmer 1.5s infinite;
-}
-
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-.progress-text {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-  white-space: nowrap;
-}
 
 /* Form Content */
 .expense-form {
@@ -345,18 +307,27 @@ textarea.form-control:focus {
   min-height: 140px;
 }
 
-/* Enhanced Select */
+/* Enhanced Select - Improved styling */
 select.form-control {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23586069' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%232b2d42' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E");
   background-repeat: no-repeat;
   background-position: right 18px center;
+  background-size: 18px;
   padding-right: 50px;
   cursor: pointer;
 }
 
 select.form-control:focus {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%234361ee' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E");
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+}
+
+/* Highlight selected option */
+select.form-control option:checked {
+  background: var(--primary-color);
+  color: white;
 }
 
 /* Enhanced Date Input */
@@ -632,9 +603,10 @@ input[type="number"]::-webkit-inner-spin-button {
   background: rgba(255, 209, 102, 0.1);
   color: var(--warning-color);
   border: 1px solid rgba(255, 209, 102, 0.2);
-  padding: 8px 16px;
+  padding: 10px 18px;
   font-size: 0.85rem;
   min-width: auto;
+  border-radius: 25px;
 }
 
 .btn-clear:hover {
@@ -703,13 +675,28 @@ input[type="number"]::-webkit-inner-spin-button {
   
   .form-header {
     padding: 24px 20px 20px;
-    flex-direction: column;
-    gap: 16px;
-    align-items: flex-start;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
   }
   
   .form-header h2 {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
+    min-width: 200px;
+    flex: 1;
+  }
+
+  .btn-back {
+    padding: 12px 18px;
+    font-size: 0.85rem;
+    min-width: 80px;
+    order: -1;
+  }
+
+  .form-actions-header {
+    margin-left: 0;
+    order: 1;
   }
 
   .form-progress {
@@ -750,8 +737,26 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 @media (max-width: 480px) {
+  .form-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
   .form-header h2 {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
+    order: 2;
+    text-align: center;
+  }
+
+  .btn-back {
+    order: 1;
+    align-self: flex-start;
+  }
+
+  .form-actions-header {
+    order: 3;
+    align-self: flex-end;
   }
   
   .form-control {

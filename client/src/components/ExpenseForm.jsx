@@ -225,24 +225,20 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
     setTimeout(() => setSuccess(''), 2000);
   };
 
+  // Calculate progress based on required fields
+  const calculateProgress = () => {
+    const requiredFields = ['amount', 'category', 'date', 'description'];
+    const completedFields = requiredFields.filter(field => 
+      formData[field] && formData[field].toString().trim() !== ''
+    ).length;
+    return (completedFields / requiredFields.length) * 100;
+  };
+
   return (
     <div className="expense-form-wrapper">
-      <div className={`expense-form-container card ${isSubmitted ? 'form-success' : ''}`}>
+      <div className={`expense-form-container ${isSubmitted ? 'form-success' : ''}`}>
         {/* Header with Back Button */}
         <div className="form-header">
-          {onGoBack && (
-            <button 
-              type="button" 
-              className="btn-back"
-              onClick={onGoBack}
-              aria-label="Go back"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M19 12H5M12 19l-7-7 7-7"/>
-              </svg>
-              Back
-            </button>
-          )}
           <h2>
             <span className="form-icon">
               {editExpense ? '✏️' : '💰'}
@@ -250,10 +246,23 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
             {editExpense ? 'Edit Expense' : 'Add New Expense'}
           </h2>
           <div className="form-actions-header">
+            {onGoBack && (
+              <button 
+                type="button" 
+                className="btn-back"
+                onClick={onGoBack}
+                aria-label="Go back"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back
+              </button>
+            )}
             {!editExpense && (
               <button 
                 type="button" 
-                className="btn-secondary btn-clear"
+                className="btn btn-clear"
                 onClick={clearForm}
                 title="Clear form"
               >
@@ -266,20 +275,7 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
           </div>
         </div>
         
-        {/* Progress Indicator */}
-        <div className="form-progress">
-          <div className="progress-bar">
-            <div 
-              className="progress-fill" 
-              style={{ 
-                width: `${Object.values(formData).filter(val => val && val !== '').length / 4 * 100}%` 
-              }}
-            ></div>
-          </div>
-          <span className="progress-text">
-            {Object.values(formData).filter(val => val && val !== '').length}/4 fields completed
-          </span>
-        </div>
+        
 
         {/* Alert Messages */}
         {error && (
@@ -305,15 +301,17 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
         
         <form onSubmit={handleSubmit} className="expense-form">
           {/* Receipt Upload Component */}
-          <div className="form-group receipt-upload-container">
+          <div className="form-group">
             <div className="form-group-header">
               <label>📄 Receipt Upload (Optional)</label>
               <span className="form-hint">Upload a receipt to auto-fill form data</span>
             </div>
-            <ReceiptUpload 
-              onProcessed={handleReceiptProcessed} 
-              onError={handleReceiptError} 
-            />
+            <div className="receipt-upload-container">
+              <ReceiptUpload 
+                onProcessed={handleReceiptProcessed} 
+                onError={handleReceiptError} 
+              />
+            </div>
           </div>
           
           {/* Amount Field */}
