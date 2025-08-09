@@ -929,3 +929,103 @@ body.with-sidebar.sidebar-collapsed {
     padding: 2px;
   }
 }
+
+/* Sidebar user dropdown (avatar+name trigger) */
+.sidebar-user {
+  position: relative;
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+
+.sidebar-user-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  color: var(--sidebar-text);
+}
+.sidebar-user-trigger:hover {
+  background: var(--glass-bg-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+.user-caret {
+  margin-left: auto;
+  color: #fff;
+  opacity: 0.85;
+  font-size: 0.8rem;
+}
+
+/* Open the menu above the trigger (since it's in the footer) */
+.user-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 8px);
+  background: var(--dropdown-bg);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: var(--dropdown-shadow);
+  padding: 0.4rem;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(6px) scale(0.98);
+  transition: var(--transition-smooth);
+  z-index: 1200;
+}
+.user-menu.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.user-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  border-radius: 10px;
+  color: var(--text-dark);
+  text-decoration: none;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: var(--transition-quick);
+  text-align: left;
+}
+.user-menu-item i {
+  font-size: 1rem;
+  opacity: 0.8;
+  min-width: 1rem;
+}
+.user-menu-item:hover {
+  background: rgba(99,102,241,0.08);
+  color: var(--primary-blue);
+  transform: translateX(4px);
+}
+.user-menu-item:hover i {
+  opacity: 1;
+}
+
+/* When collapsed, hide name and caret; keep avatar clickable; place menu at fixed width */
+.sidebar.collapsed .user-meta,
+.sidebar.collapsed .user-caret {
+  display: none;
+}
+.sidebar.collapsed .user-menu {
+  left: 0;
+  right: auto;
+  width: 220px;
+}

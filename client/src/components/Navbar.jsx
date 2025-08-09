@@ -16,6 +16,10 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // NEW: user menu state + ref
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
+
   // Apply body class for layout shift (content indentation)
   useEffect(() => {
     document.body.classList.add('with-sidebar');
@@ -28,10 +32,29 @@ const Navbar = () => {
     document.body.classList.toggle('sidebar-collapsed', collapsed);
   }, [collapsed]);
 
-  // Close mobile drawer on route change
+  // Close mobile drawer and user menu on route change
   useEffect(() => {
     setIsOpen(false);
+    setUserMenuOpen(false);
   }, [location]);
+
+  // NEW: close user menu on outside click + Esc
+  useEffect(() => {
+    const onClickOutside = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setUserMenuOpen(false);
+      }
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') setUserMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onClickOutside);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onClickOutside);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, []);
 
   const navigationItems = [
     { path: '/dashboard', label: 'Dashboard', icon: 'fas fa-tachometer-alt' },
@@ -46,6 +69,7 @@ const Navbar = () => {
   const handleLogout = () => {
     logout();
     navigate('/login');
+    setUserMenuOpen(false);
   };
 
   return (
@@ -99,18 +123,38 @@ const Navbar = () => {
 
         <div className="sidebar-footer">
           {user ? (
-            <div className="sidebar-user">
-              <div className="user-avatar">
-                <i className="fas fa-user"></i>
-              </div>
-              <div className="user-meta">
-                <span className="user-greet">Hi,</span>
-                <span className="user-name">{user.username}</span>
-              </div>
-              <button className="logout-btn" onClick={handleLogout} title="Logout">
-                <i className="fas fa-sign-out-alt"></i>
-                <span className="link-text">Logout</span>
+            // REPLACED: make avatar+name a toggle; menu contains profile/settings/logout
+            <div className="sidebar-user" ref={userMenuRef}>
+              <button
+                className="sidebar-user-trigger"
+                onClick={() => setUserMenuOpen(v => !v)}
+                aria-expanded={userMenuOpen}
+                aria-haspopup="true"
+              >
+                <div className="user-avatar">
+                  <i className="fas fa-user"></i>
+                </div>
+                <div className="user-meta">
+                  <span className="user-greet">Hi,</span>
+                  <span className="user-name">{user.username}</span>
+                </div>
+                <i className={`user-caret fas ${userMenuOpen ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
               </button>
+
+              <div className={`user-menu ${userMenuOpen ? 'open' : ''}`}>
+                <Link to="/profile" className="user-menu-item" onClick={() => setUserMenuOpen(false)}>
+                  <i className="fas fa-user-circle"></i>
+                  <span>Profile</span>
+                </Link>
+                <Link to="/settings" className="user-menu-item" onClick={() => setUserMenuOpen(false)}>
+                  <i className="fas fa-cog"></i>
+                  <span>Settings</span>
+                </Link>
+                <button className="user-menu-item" onClick={handleLogout}>
+                  <i className="fas fa-sign-out-alt"></i>
+                  <span>Logout</span>
+                </button>
+              </div>
             </div>
           ) : (
             <div className="sidebar-auth">
