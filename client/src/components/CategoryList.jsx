@@ -12,7 +12,7 @@ const CategoryList = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-          const token = localStorage.getItem('token');
+        const token = localStorage.getItem('token');
         const { data } = await axios.get('/api/categories', {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -30,7 +30,7 @@ const CategoryList = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this category?')) {
       try {
-          const token = localStorage.getItem('token');
+        const token = localStorage.getItem('token');
         await axios.delete(`/api/categories/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -70,20 +70,30 @@ const CategoryList = () => {
       </div>
 
       {categories.length === 0 ? (
-        <p>No categories found. Create your first category!</p>
+        <p>No categories found. Create your first category to get started!</p>
       ) : (
         <div className="row">
           {categories.map((category) => (
             <div key={category._id} className="col-md-4 mb-3">
-              <div className="card" style={{ borderLeft: `5px solid ${category.color}` }}>
+              <div 
+                className="card" 
+                style={{ '--card-color': category.color }}
+                data-color={category.color}
+              >
                 <div className="card-body">
-                  <div className="d-flex justify-content-between align-items-center">
+                  <div className="d-flex justify-content-between align-items-start">
                     <h5 className="card-title">
-                      <i className={category.icon} style={{ marginRight: '8px', color: category.color }}></i>
-                      {category.name}
+                      <i 
+                        className={category.icon} 
+                        style={{ color: category.color }}
+                      ></i>
+                      <span>{category.name}</span>
                     </h5>
                     <div className="btn-group">
-                      <Link to={`/categories/edit/${category._id}`} className="btn btn-sm btn-outline-primary">
+                      <Link 
+                        to={`/categories/edit/${category._id}`} 
+                        className="btn btn-sm btn-outline-primary"
+                      >
                         Edit
                       </Link>
                       {!category.isDefault && (
