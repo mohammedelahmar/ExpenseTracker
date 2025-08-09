@@ -6,6 +6,8 @@ import '../styles/ExpenseList.css';
 import Lottie from 'lottie-react';
 import dashboardLoadingAnimation from '../assets/dashboard-loading.json';
 
+const API_BASE = process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : '';
+
 const ExpenseList = () => {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -201,7 +203,7 @@ const ExpenseList = () => {
     
     const receiptUrl = receipt.startsWith('http') 
       ? receipt 
-      : `http://localhost:5000/${receipt}`;
+      : `${API_BASE}/${receipt}`;
     
     return (
       <button

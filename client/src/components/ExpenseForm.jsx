@@ -4,6 +4,8 @@ import axios from 'axios';
 import '../styles/ExpenseForm.css'; // You'll need to create this CSS file
 import ReceiptUpload from './ReceiptUpload';
 
+const API_BASE = process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL : '';
+
 const ExpenseForm = ({ editExpense = null, onSubmitSuccess }) => {
   const { user } = useContext(AuthContext);
   const [categories, setCategories] = useState([]);
@@ -50,7 +52,7 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess }) => {
       
       // Set receipt preview if available
       if (editExpense.receipt) {
-        setReceiptPreview(`http://localhost:5000/${editExpense.receipt}`);
+        setReceiptPreview(`${API_BASE}/${editExpense.receipt}`);
       }
     }
   }, [editExpense]);
@@ -94,7 +96,7 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess }) => {
     
     // Set receipt preview
     if (receiptData.receipt) {
-      setReceiptPreview(`http://localhost:5000/${receiptData.receipt}`);
+      setReceiptPreview(`${API_BASE}/${receiptData.receipt}`);
     }
   };
   

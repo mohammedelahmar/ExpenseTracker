@@ -12,6 +12,7 @@ import {
 } from '../controllers/authController.js';
 import { protect } from '../middleware/auth.js';
 import { registerValidator, loginValidator } from '../middleware/validators.js';
+import { sendEmail } from '../services/emailService.js';
 
 const router = express.Router();
 

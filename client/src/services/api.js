@@ -1,8 +1,12 @@
 import axios from 'axios';
 
 // Create an axios instance with default config
+const baseURL = process.env.REACT_APP_API_URL 
+  ? `${process.env.REACT_APP_API_URL}`
+  : '';
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
+  baseURL: `${baseURL}/api`,
   headers: {
     'Content-Type': 'application/json'
   },
