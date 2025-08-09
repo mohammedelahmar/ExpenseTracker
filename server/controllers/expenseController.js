@@ -47,9 +47,15 @@ const getAllExpenses = asyncHandler(async(req, res) => {
         filter.date = { $lte: new Date(req.query.endDate) };
     }
     
-    // Filter by category
+    // Filter by single category
     if (req.query.category) {
         filter.category = req.query.category;
+    }
+    
+    // Filter by multiple categories (comma-separated)
+    if (req.query.categories) {
+        const categoriesArray = req.query.categories.split(',').map(cat => cat.trim());
+        filter.category = { $in: categoriesArray };
     }
     
     // Filter by min/max amount
@@ -57,6 +63,49 @@ const getAllExpenses = asyncHandler(async(req, res) => {
         filter.amount = {};
         if (req.query.minAmount) filter.amount.$gte = Number(req.query.minAmount);
         if (req.query.maxAmount) filter.amount.$lte = Number(req.query.maxAmount);
+    }
+    
+    // Filter by receipt presence
+    if (req.query.hasReceipt === 'true') {
+        filter.receipt = { $exists: true, $ne: null, $ne: '' };
+    } else if (req.query.hasReceipt === 'false') {
+        filter.$or = [
+            { receipt: { $exists: false } },
+            { receipt: null },
+            { receipt: '' }
+        ];
+    }
+    
+    // Search functionality - search in description, category, and amount
+    if (req.query.search) {
+        const searchRegex = new RegExp(req.query.search, 'i'); // Case-insensitive search
+        const searchAmount = parseFloat(req.query.search);
+        
+        // If we already have a $or condition from receipt filter, we need to combine them properly
+        if (filter.$or) {
+            // Combine search with existing $or using $and
+            const existingOr = filter.$or;
+            delete filter.$or;
+            
+            filter.$and = [
+                { $or: existingOr },
+                {
+                    $or: [
+                        { description: searchRegex },
+                        { category: searchRegex },
+                        // Include amount search only if the search term is a valid number
+                        ...(isNaN(searchAmount) ? [] : [{ amount: searchAmount }])
+                    ]
+                }
+            ];
+        } else {
+            filter.$or = [
+                { description: searchRegex },
+                { category: searchRegex },
+                // Include amount search only if the search term is a valid number
+                ...(isNaN(searchAmount) ? [] : [{ amount: searchAmount }])
+            ];
+        }
     }
     
     // Pagination

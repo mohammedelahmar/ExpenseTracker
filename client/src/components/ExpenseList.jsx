@@ -67,21 +67,24 @@ const ExpenseList = () => {
           activeFilters.categories = selectedCategories.join(',');
         }
         
-        // Add quick filters
-        if (quickFilters.today) {
+        // Add quick filters - only if manual date filters are not set
+        if (quickFilters.today && !activeFilters.startDate && !activeFilters.endDate) {
           const today = new Date().toISOString().split('T')[0];
           activeFilters.startDate = today;
           activeFilters.endDate = today;
         }
-        if (quickFilters.thisWeek) {
+        if (quickFilters.thisWeek && !activeFilters.startDate && !activeFilters.endDate) {
           const today = new Date();
           const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
           activeFilters.startDate = startOfWeek.toISOString().split('T')[0];
+          activeFilters.endDate = new Date().toISOString().split('T')[0];
         }
-        if (quickFilters.thisMonth) {
+        if (quickFilters.thisMonth && !activeFilters.startDate && !activeFilters.endDate) {
           const today = new Date();
           const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+          const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
           activeFilters.startDate = startOfMonth.toISOString().split('T')[0];
+          activeFilters.endDate = endOfMonth.toISOString().split('T')[0];
         }
         if (quickFilters.hasReceipt) {
           activeFilters.hasReceipt = 'true';
@@ -108,6 +111,16 @@ const ExpenseList = () => {
       [name]: value,
       ...(name !== 'page' && name !== 'limit' ? { page: 1 } : {})
     }));
+    
+    // Clear quick date filters when manual date filters are set
+    if ((name === 'startDate' || name === 'endDate') && value) {
+      setQuickFilters(prev => ({
+        ...prev,
+        today: false,
+        thisWeek: false,
+        thisMonth: false
+      }));
+    }
   };
 
   const handleSearchChange = (e) => {
