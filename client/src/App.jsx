@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
 import ExpenseForm from './components/ExpenseForm';
@@ -30,6 +30,24 @@ import './styles/analytics.css';
 
 function App() {
   const { user, isLoading } = useAuth();
+  const location = useLocation();
+
+  // Define routes where navbar should be hidden
+  const hideNavbarRoutes = [
+    '/',
+    '/login',
+    '/register',
+    '/forgot-password',
+    '/reset-password'
+  ];
+
+  // Check if current route should hide navbar
+  const shouldHideNavbar = hideNavbarRoutes.some(route => {
+    if (route === '/reset-password') {
+      return location.pathname.startsWith('/reset-password');
+    }
+    return location.pathname === route;
+  });
 
   // Protected route component using AuthContext
   const ProtectedRoute = ({ children }) => {
@@ -39,8 +57,10 @@ function App() {
 
   return (
     <>
-      <Navbar />
-      <div className="container">
+      {/* Conditionally render Navbar */}
+      {!shouldHideNavbar && <Navbar />}
+      
+      <div className={shouldHideNavbar ? "" : "container"}>
         <AnalyticsProvider> {/* Wrap routes that need analytics */}
           <Routes>
             {/* Public Route - Welcome page */}

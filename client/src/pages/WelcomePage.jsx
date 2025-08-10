@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, TrendingUp, Target, FileText, Camera, PieChart, Calendar, Bell, Shield, Zap, BarChart3, Receipt, Brain, DollarSign, CreditCard, Users, Star } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ChevronRight, TrendingUp, Target, FileText, Camera, PieChart, Calendar, Bell, Shield, Zap, BarChart3, Receipt, Brain, DollarSign, CreditCard, Users, Star, LogIn, UserPlus } from 'lucide-react';
 
 const AnimatedCounter = ({ end, duration = 2000, suffix = "" }) => {
   const [count, setCount] = useState(0);
@@ -55,10 +56,19 @@ const TestimonialCard = ({ name, role, content, avatar }) => (
 
 const WelcomePage = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
+
+  const handleLogin = () => {
+    navigate('/login');
+  };
+
+  const handleRegister = () => {
+    navigate('/register');
+  };
 
   const features = [
     {
@@ -122,6 +132,35 @@ const WelcomePage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      {/* Top Navigation Bar */}
+      <nav className="relative z-50 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <DollarSign className="h-5 w-5 text-white" />
+            </div>
+            <span className="text-xl font-bold text-gray-900">ExpenseTracker Pro</span>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={handleLogin}
+              className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200"
+            >
+              <LogIn className="h-4 w-4" />
+              Sign In
+            </button>
+            <button 
+              onClick={handleRegister}
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-xl font-semibold shadow-lg hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105"
+            >
+              <UserPlus className="h-4 w-4" />
+              Get Started
+            </button>
+          </div>
+        </div>
+      </nav>
+
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-indigo-600/10" />
@@ -146,12 +185,18 @@ const WelcomePage = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <button className="group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2">
+              <button 
+                onClick={handleRegister}
+                className="group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
+              >
                 Start Free Trial
                 <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </button>
-              <button className="group bg-white/80 backdrop-blur-sm text-gray-900 px-8 py-4 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 border border-gray-200">
-                Watch Demo
+              <button 
+                onClick={handleLogin}
+                className="group bg-white/80 backdrop-blur-sm text-gray-900 px-8 py-4 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 border border-gray-200"
+              >
+                Sign In
               </button>
             </div>
             
@@ -229,7 +274,10 @@ const WelcomePage = () => {
                   </li>
                 ))}
               </ul>
-              <button className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors">
+              <button 
+                onClick={handleRegister}
+                className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+              >
                 Try OCR Now
               </button>
             </div>
@@ -337,12 +385,18 @@ const WelcomePage = () => {
             Start your free trial today and see the difference.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="group bg-white text-blue-600 px-8 py-4 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-white/25 transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2">
+            <button 
+              onClick={handleRegister}
+              className="group bg-white text-blue-600 px-8 py-4 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-white/25 transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
+            >
               Start Free Trial
               <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </button>
-            <button className="group bg-white/10 backdrop-blur-sm text-white border-2 border-white/20 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white/20 transition-all duration-300">
-              Contact Sales
+            <button 
+              onClick={handleLogin}
+              className="group bg-white/10 backdrop-blur-sm text-white border-2 border-white/20 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white/20 transition-all duration-300"
+            >
+              Sign In
             </button>
           </div>
           
