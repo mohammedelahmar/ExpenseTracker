@@ -52,7 +52,8 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
       });
       
       if (editExpense.receipt) {
-        setReceiptPreview(`http://localhost:5000/${editExpense.receipt}`);
+        const safeUrl = editExpense.receipt.startsWith('/uploads/') ? editExpense.receipt : `/${editExpense.receipt}`;
+        setReceiptPreview(safeUrl);
       }
     }
   }, [editExpense]);
@@ -118,7 +119,7 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
     setFormData(prevData => {
       const newData = {
         ...prevData,
-        amount: receiptData.amount || prevData.amount,
+        amount: (typeof receiptData.amount === 'number' && receiptData.amount > 0) ? receiptData.amount : prevData.amount,
         category: receiptData.category || prevData.category,
         description: receiptData.description || receiptData.merchant || prevData.description,
         date: formattedDate,
@@ -128,7 +129,8 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
     });
     
     if (receiptData.receipt) {
-      setReceiptPreview(`http://localhost:5000/${receiptData.receipt}`);
+      const safeUrl = receiptData.receipt.startsWith('/uploads/') ? receiptData.receipt : `/${receiptData.receipt}`;
+      setReceiptPreview(safeUrl);
     }
     
     setSuccess('Receipt processed successfully!');

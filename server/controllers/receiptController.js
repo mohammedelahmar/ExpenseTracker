@@ -191,6 +191,46 @@ class PDFSecurityScanner {
   }
 }
 
+// Real file-type detection via magic bytes (no reliance on client-provided mimetype)
+async function detectFileType(filePath) {
+  try {
+    const buf = await fs.readFile(filePath);
+    if (!buf || buf.length < 4) return null;
+
+    // PDF: %PDF-
+    if (buf.slice(0, 5).toString('ascii') === '%PDF-') {
+      return { mime: 'application/pdf', ext: 'pdf' };
+    }
+
+    // JPEG: FF D8 FF
+    if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) {
+      return { mime: 'image/jpeg', ext: 'jpg' };
+    }
+
+    // PNG: 89 50 4E 47 0D 0A 1A 0A
+    const pngSig = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+    if (buf.length >= 8 && pngSig.every((v, i) => buf[i] === v)) {
+      return { mime: 'image/png', ext: 'png' };
+    }
+
+    // GIF: GIF87a or GIF89a
+    const gifSig = buf.slice(0, 6).toString('ascii');
+    if (gifSig === 'GIF87a' || gifSig === 'GIF89a') {
+      return { mime: 'image/gif', ext: 'gif' };
+    }
+
+    // WEBP: RIFF....WEBP
+    if (buf.length >= 12 && buf.slice(0, 4).toString('ascii') === 'RIFF' && buf.slice(8, 12).toString('ascii') === 'WEBP') {
+      return { mime: 'image/webp', ext: 'webp' };
+    }
+
+    return null;
+  } catch (e) {
+    console.error('Magic bytes detection failed:', e);
+    return null;
+  }
+}
+
 // Build a sharp pipeline based on options
 async function buildAndSaveSharp(inputPath, outputPath, opts) {
   const {
@@ -244,6 +284,28 @@ async function preprocessImageVariants(filePath) {
 }
 
 // Extract data from receipt using OCR with multi-variant strategy
+let ocrWorkerPromise = null;
+async function getOcrWorker() {
+  if (!ocrWorkerPromise) {
+    ocrWorkerPromise = (async () => {
+      const worker = await createWorker('eng', 1, {
+        logger: m => console.debug('Tesseract:', m.status || m),
+        errorHandler: err => console.error('Tesseract error:', err)
+      });
+      await worker.setParameters({
+        // Use a wider currency-enabled whitelist; keep spaces
+        tessedit_char_whitelist: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ£€₦₵₹₽¥$.,:/\\-()&'\"+ ",
+        preserve_interword_spaces: '1',
+        tessedit_pageseg_mode: '6', // Assume a uniform block of text
+        tessedit_ocr_engine_mode: '1', // LSTM only for better accuracy
+        user_defined_dpi: '300',
+      });
+      return worker;
+    })();
+  }
+  return ocrWorkerPromise;
+}
+
 export const processReceipt = asyncHandler(async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ 
@@ -252,12 +314,36 @@ export const processReceipt = asyncHandler(async (req, res) => {
     });
   }
 
-  let worker;
   let processedPaths = [];
 
   try {
-    // Detect and handle PDF files using direct text extraction first
-    const isPdf = (req.file.mimetype === 'application/pdf' || path.extname(req.file.originalname || req.file.filename || '').toLowerCase() === '.pdf');
+    // Real file-type detection using magic bytes
+    const detected = await detectFileType(req.file.path);
+    if (!detected) {
+      try { await fs.unlink(req.file.path); } catch (_) {}
+      return res.status(400).json({ success: false, error: 'Unable to detect file type' });
+    }
+    const actualMime = detected.mime;
+    const detectedExt = detected.ext ? detected.ext.toLowerCase() : '';
+    if (!ALLOWED_FILE_TYPES.includes(actualMime)) {
+      try { await fs.unlink(req.file.path); } catch (_) {}
+      return res.status(400).json({ success: false, error: 'Unsupported file type' });
+    }
+    // Normalize file extension to detected type to avoid spoofing and preview mismatches
+    const currentExt = path.extname(req.file.filename || '').slice(1).toLowerCase();
+    if (detectedExt && currentExt && currentExt !== detectedExt) {
+      const base = path.basename(req.file.filename, path.extname(req.file.filename));
+      const newFilename = `${base}.${detectedExt}`;
+      const newPath = path.join(UPLOAD_DIR, newFilename);
+      try {
+        await fs.rename(req.file.path, newPath);
+        req.file.filename = newFilename;
+        req.file.path = newPath;
+      } catch (e) {
+        console.error('Failed to normalize file extension:', e);
+      }
+    }
+    const isPdf = actualMime === 'application/pdf';
     if (isPdf) {
       // SECURITY: Perform malware scan on PDF
       const pdfBuffer = await fs.readFile(req.file.path);
@@ -310,7 +396,7 @@ export const processReceipt = asyncHandler(async (req, res) => {
 
       return res.status(200).json({
         success: true,
-        receiptUrl: req.file.path.replace(/\\/g, '/'),
+        receiptUrl: `/uploads/receipts/${encodeURIComponent(req.file.filename)}`,
         ocr: { 
           source: 'pdf-text', 
           pages: pdfData?.numpages || undefined, 
@@ -326,20 +412,8 @@ export const processReceipt = asyncHandler(async (req, res) => {
       });
     }
 
-    // Initialize Tesseract worker with improved configuration
-    worker = await createWorker('eng', 1, {
-      logger: m => console.debug('Tesseract:', m.status || m),
-      errorHandler: err => console.error('Tesseract error:', err)
-    });
-
-    await worker.setParameters({
-      // Use a wider currency-enabled whitelist; keep spaces
-      tessedit_char_whitelist: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ£€₦₵₹₽¥$.,:/\\-()&'\"+ ",
-      preserve_interword_spaces: '1',
-      tessedit_pageseg_mode: '6', // Assume a uniform block of text
-      tessedit_ocr_engine_mode: '1', // LSTM only for better accuracy
-      user_defined_dpi: '300',
-    });
+    // Initialize/reuse Tesseract worker (singleton to prevent leaks and improve performance)
+    const worker = await getOcrWorker();
 
     // Preprocess image into multiple variants
     processedPaths = await preprocessImageVariants(req.file.path);
@@ -372,7 +446,7 @@ export const processReceipt = asyncHandler(async (req, res) => {
     // Return the extracted data
     res.status(200).json({
       success: true,
-      receiptUrl: req.file.path.replace(/\\/g, '/'),
+      receiptUrl: `/uploads/receipts/${encodeURIComponent(req.file.filename)}`,
       ocr: { confidence: best.confidence, variant: path.basename(best.path || ''), rawTextPreview: (best.text || '').slice(0, 500) },
       extractedData: validateExtractedData(best.parsed || { amount: null, date: null, merchant: 'Unknown Merchant', items: [], category: 'Other' }),
       security: {
@@ -390,7 +464,7 @@ export const processReceipt = asyncHandler(async (req, res) => {
     });
   } finally {
     // Clean up resources
-    if (worker) await worker.terminate();
+    // Worker kept alive for reuse; no termination here
 
     // Clean up temporary files
     for (const p of processedPaths) {
@@ -738,7 +812,7 @@ function validateExtractedData(data) {
 
   return {
     ...data,
-    amount: data.amount && !isNaN(data.amount) ? Number(data.amount) : 1000, // preserve existing fallback behavior
+    amount: data.amount && !isNaN(data.amount) && Number(data.amount) > 0 ? Number(data.amount) : null,
     date: data.date && !isNaN(Date.parse(data.date)) ? data.date : null,
     merchant,
     description: description || 'Receipt'

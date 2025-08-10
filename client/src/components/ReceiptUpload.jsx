@@ -25,9 +25,10 @@ const ReceiptUpload = ({ onProcessed, onError }) => {
       setLoading(true);
       setError(null);
       
-      // Show preview (image or PDF)
+      // Show preview (image or PDF) using magic-type-aware hint when available
       const previewUrl = URL.createObjectURL(file);
-      const pdf = file.type === 'application/pdf' || (file.name && file.name.toLowerCase().endsWith('.pdf'));
+      const nameLower = (file.name || '').toLowerCase();
+      const pdf = file.type === 'application/pdf' || nameLower.endsWith('.pdf');
       setIsPdf(!!pdf);
       setImagePreview(previewUrl);
 
@@ -37,7 +38,7 @@ const ReceiptUpload = ({ onProcessed, onError }) => {
       // Pass extracted data to parent component
       onProcessed({
         ...result.extractedData,
-        receipt: result.receiptUrl
+        receipt: result.receiptUrl // server returns a sanitized relative URL
       });
       
     } catch (err) {
@@ -82,7 +83,7 @@ const ReceiptUpload = ({ onProcessed, onError }) => {
         // Pass extracted data to parent component
         onProcessed({
           ...result.extractedData,
-          receipt: result.receiptUrl
+          receipt: result.receiptUrl // sanitized relative URL from server
         });
         
       } catch (err) {
