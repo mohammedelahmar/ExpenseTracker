@@ -6,12 +6,17 @@ import sharp from 'sharp';
 import asyncHandler from 'express-async-handler';
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
+import { fileURLToPath } from 'url';
+
+// Resolve absolute paths based on this file location
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Configuration constants
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
-const UPLOAD_DIR = 'uploads/receipts';
-const TEMP_DIR = 'tmp';
+const UPLOAD_DIR = path.join(__dirname, '..', 'uploads', 'receipts'); // ensure absolute & consistent
+const TEMP_DIR = path.join(__dirname, '..', 'tmp');                   // ensure absolute & consistent
 
 // PDF Security configuration
 const PDF_SECURITY_CONFIG = {
@@ -306,6 +311,19 @@ async function getOcrWorker() {
   return ocrWorkerPromise;
 }
 
+// Helper to build a public URL for the uploaded receipt (works behind proxies)
+function publicReceiptUrl(req, filename) {
+  // Prefer explicit public base URL if provided (e.g., https://api.example.com)
+  if (process.env.PUBLIC_BASE_URL) {
+    const base = process.env.PUBLIC_BASE_URL.replace(/\/+$/, '');
+    return `${base}/uploads/receipts/${encodeURIComponent(filename)}`;
+  }
+  // In dev: use the API server host/port directly; don't trust x-forwarded-host from CRA proxy
+  const proto = req.protocol;
+  const host = req.get('host'); // e.g., localhost:5000
+  return `${proto}://${host}/uploads/receipts/${encodeURIComponent(filename)}`;
+}
+
 export const processReceipt = asyncHandler(async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ 
@@ -396,7 +414,8 @@ export const processReceipt = asyncHandler(async (req, res) => {
 
       return res.status(200).json({
         success: true,
-        receiptUrl: `/uploads/receipts/${encodeURIComponent(req.file.filename)}`,
+        // changed: return absolute URL so client doesn’t rely on dev proxy
+        receiptUrl: publicReceiptUrl(req, req.file.filename),
         ocr: { 
           source: 'pdf-text', 
           pages: pdfData?.numpages || undefined, 
@@ -446,7 +465,8 @@ export const processReceipt = asyncHandler(async (req, res) => {
     // Return the extracted data
     res.status(200).json({
       success: true,
-      receiptUrl: `/uploads/receipts/${encodeURIComponent(req.file.filename)}`,
+      // changed: return absolute URL so client doesn’t rely on dev proxy
+      receiptUrl: publicReceiptUrl(req, req.file.filename),
       ocr: { confidence: best.confidence, variant: path.basename(best.path || ''), rawTextPreview: (best.text || '').slice(0, 500) },
       extractedData: validateExtractedData(best.parsed || { amount: null, date: null, merchant: 'Unknown Merchant', items: [], category: 'Other' }),
       security: {

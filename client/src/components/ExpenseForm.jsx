@@ -52,7 +52,12 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
       });
       
       if (editExpense.receipt) {
-        const safeUrl = editExpense.receipt.startsWith('/uploads/') ? editExpense.receipt : `/${editExpense.receipt}`;
+        const makeSafeUrl = (u) => {
+          if (!u) return '';
+          if (/^https?:\/\//i.test(u)) return u;
+          return u.startsWith('/uploads/') ? u : `/${u}`;
+        };
+        const safeUrl = makeSafeUrl(editExpense.receipt);
         setReceiptPreview(safeUrl);
       }
     }
@@ -129,7 +134,12 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
     });
     
     if (receiptData.receipt) {
-      const safeUrl = receiptData.receipt.startsWith('/uploads/') ? receiptData.receipt : `/${receiptData.receipt}`;
+      const makeSafeUrl = (u) => {
+        if (!u) return '';
+        if (/^https?:\/\//i.test(u)) return u;
+        return u.startsWith('/uploads/') ? u : `/${u}`;
+      };
+      const safeUrl = makeSafeUrl(receiptData.receipt);
       setReceiptPreview(safeUrl);
     }
     

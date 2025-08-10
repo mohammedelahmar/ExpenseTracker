@@ -43,7 +43,10 @@ app.use(cors({
 console.log(`CORS enabled for origin: ${process.env.CLIENT_URL || 'http://localhost:3000'}`);
 app.use(express.json());
 
-// Serve uploaded files
+// If behind a proxy (optional but recommended for correct protocol)
+app.set('trust proxy', 1);
+
+// Serve the uploads directory (ensure path is the same location used by multer)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
