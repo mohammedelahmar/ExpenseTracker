@@ -7,8 +7,8 @@ import asyncHandler from 'express-async-handler';
 import { v4 as uuidv4 } from 'uuid';
 
 // Configuration constants
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
 const UPLOAD_DIR = 'uploads/receipts';
 const TEMP_DIR = 'tmp';
 
@@ -32,12 +32,12 @@ const storage = multer.diskStorage({
 const fileFilter = (req, file, cb) => {
   const extension = path.extname(file.originalname).toLowerCase();
   const isAllowedType = ALLOWED_FILE_TYPES.includes(file.mimetype);
-  const isAllowedExtension = ['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(extension);
+  const isAllowedExtension = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf'].includes(extension);
 
   if (isAllowedType && isAllowedExtension) {
     cb(null, true);
   } else {
-    cb(new Error('Invalid file type. Only JPG, PNG, GIF and WebP images are allowed.'), false);
+    cb(new Error('Invalid file type. Only JPG, PNG, GIF, WebP images and PDF are allowed.'), false);
   }
 };
 
@@ -113,6 +113,25 @@ export const processReceipt = asyncHandler(async (req, res) => {
   let processedPaths = [];
 
   try {
+    // Detect and handle PDF files using direct text extraction first
+    const isPdf = (req.file.mimetype === 'application/pdf' || path.extname(req.file.originalname || req.file.filename || '').toLowerCase() === '.pdf');
+    if (isPdf) {
+      // Lazy-load the safe lib entry to avoid the test harness in the package root
+      const { default: pdfParse } = await import('pdf-parse/lib/pdf-parse.js');
+
+      const pdfBuffer = await fs.readFile(req.file.path);
+      const pdfData = await pdfParse(pdfBuffer);
+      const text = (pdfData && typeof pdfData.text === 'string') ? pdfData.text : '';
+      const parsed = parseReceiptText(text || '');
+
+      return res.status(200).json({
+        success: true,
+        receiptUrl: req.file.path.replace(/\\/g, '/'),
+        ocr: { source: 'pdf-text', pages: pdfData?.numpages || undefined, rawTextPreview: (text || '').slice(0, 500) },
+        extractedData: validateExtractedData(parsed || { amount: null, date: null, merchant: 'Unknown Merchant', items: [], category: 'Other' })
+      });
+    }
+
     // Initialize Tesseract worker with improved configuration
     worker = await createWorker('eng', 1, {
       logger: m => console.debug('Tesseract:', m.status || m),

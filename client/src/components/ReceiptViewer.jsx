@@ -9,16 +9,24 @@ const ReceiptViewer = ({ show, onHide, receiptUrl, description }) => {
       </Modal.Header>
       <Modal.Body className="text-center">
         {receiptUrl ? (
-          <img 
-            src={receiptUrl} 
-            alt="Receipt" 
-            className="img-fluid receipt-full" 
-            style={{ maxHeight: '70vh' }}
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = "https://via.placeholder.com/400x600?text=Receipt+Image+Not+Available";
-            }}
-          />
+          /\.pdf($|\?)/i.test(receiptUrl) ? (
+            <iframe
+              title="Receipt PDF"
+              src={receiptUrl}
+              style={{ width: '100%', height: '70vh', border: 'none' }}
+            />
+          ) : (
+            <img 
+              src={receiptUrl} 
+              alt="Receipt" 
+              className="img-fluid receipt-full" 
+              style={{ maxHeight: '70vh' }}
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "https://via.placeholder.com/400x600?text=Receipt+Image+Not+Available";
+              }}
+            />
+          )
         ) : (
           <div className="alert alert-info">No receipt available</div>
         )}

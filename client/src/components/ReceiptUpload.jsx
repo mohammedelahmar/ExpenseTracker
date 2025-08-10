@@ -12,6 +12,7 @@ const ReceiptUpload = ({ onProcessed, onError }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [isPdf, setIsPdf] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
   const fileInputRef = useRef(null);
   const webcamRef = useRef(null);
@@ -24,11 +25,13 @@ const ReceiptUpload = ({ onProcessed, onError }) => {
       setLoading(true);
       setError(null);
       
-      // Show image preview
+      // Show preview (image or PDF)
       const previewUrl = URL.createObjectURL(file);
+      const pdf = file.type === 'application/pdf' || (file.name && file.name.toLowerCase().endsWith('.pdf'));
+      setIsPdf(!!pdf);
       setImagePreview(previewUrl);
 
-      // Process the receipt
+      // Process the receipt (server handles image OCR or PDF text extraction)
       const result = await receiptService.uploadReceipt(file);
       
       // Pass extracted data to parent component
@@ -54,6 +57,7 @@ const ReceiptUpload = ({ onProcessed, onError }) => {
     if (webcamRef.current) {
       const imageSrc = webcamRef.current.getScreenshot();
       setCameraOpen(false);
+      setIsPdf(false);
       setImagePreview(imageSrc);
       
       try {
@@ -101,6 +105,7 @@ const ReceiptUpload = ({ onProcessed, onError }) => {
 
   const handleClearImage = () => {
     setImagePreview(null);
+    setIsPdf(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -109,7 +114,7 @@ const ReceiptUpload = ({ onProcessed, onError }) => {
   return (
     <Box sx={{ mb: 3 }}>
       <Typography variant="subtitle1" gutterBottom>
-        Add Receipt Image
+        Add Receipt (Image or PDF)
       </Typography>
       
       {error && (
@@ -122,16 +127,24 @@ const ReceiptUpload = ({ onProcessed, onError }) => {
         <Card variant="outlined" sx={{ mb: 2, position: 'relative' }}>
           <CardContent sx={{ p: 1, pb: '8px !important' }}>
             <Box sx={{ position: 'relative' }}>
-              <img 
-                src={imagePreview} 
-                alt="Receipt preview" 
-                style={{ 
-                  width: '100%', 
-                  height: 'auto', 
-                  maxHeight: '200px',
-                  objectFit: 'contain'
-                }}
-              />
+              {isPdf ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, bgcolor: 'rgba(0,0,0,0.02)', borderRadius: 1 }}>
+                  <Typography variant="body2">
+                    PDF selected. You can view it after upload from the preview or open in a new tab.
+                  </Typography>
+                </Box>
+              ) : (
+                <img 
+                  src={imagePreview} 
+                  alt="Receipt preview" 
+                  style={{ 
+                    width: '100%', 
+                    height: 'auto', 
+                    maxHeight: '200px',
+                    objectFit: 'contain'
+                  }}
+                />
+              )}
               <IconButton
                 size="small"
                 sx={{ 
@@ -184,7 +197,7 @@ const ReceiptUpload = ({ onProcessed, onError }) => {
       
       <input
         type="file"
-        accept="image/*"
+        accept="image/*,application/pdf"
         onChange={handleFileUpload}
         ref={fileInputRef}
         style={{ display: 'none' }}

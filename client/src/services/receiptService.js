@@ -8,7 +8,7 @@ const configureRequest = () => {
   authService.configureAxiosHeader();
 };
 
-// Upload receipt image for OCR processing
+// Upload receipt (image or PDF). Server will OCR images and extract text from PDFs instantly.
 const uploadReceipt = async (file) => {
   try {
     configureRequest();

@@ -436,11 +436,19 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
                 </button>
               </div>
               <div className="receipt-preview">
-                <img 
-                  src={receiptPreview} 
-                  alt="Receipt" 
-                  loading="lazy"
-                />
+                {/\.pdf($|\?)/i.test(receiptPreview) ? (
+                  <iframe
+                    title="Receipt PDF"
+                    src={receiptPreview}
+                    style={{ width: '100%', height: '360px', border: 'none' }}
+                  />
+                ) : (
+                  <img 
+                    src={receiptPreview} 
+                    alt="Receipt" 
+                    loading="lazy"
+                  />
+                )}
               </div>
             </div>
           )}
