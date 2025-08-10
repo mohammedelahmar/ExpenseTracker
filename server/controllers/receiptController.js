@@ -5,12 +5,34 @@ import { createWorker } from 'tesseract.js';
 import sharp from 'sharp';
 import asyncHandler from 'express-async-handler';
 import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 
 // Configuration constants
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
 const UPLOAD_DIR = 'uploads/receipts';
 const TEMP_DIR = 'tmp';
+
+// PDF Security configuration
+const PDF_SECURITY_CONFIG = {
+  MAX_PDF_SIZE: 8 * 1024 * 1024, // 8MB for PDFs (stricter than images)
+  MAX_PAGES: 50, // Maximum number of pages allowed
+  SUSPICIOUS_KEYWORDS: [
+    // JavaScript execution patterns
+    '/JavaScript', '/JS', 'this.print', 'app.alert', 'eval(',
+    // Suspicious actions
+    'importDataObject', 'exportDataObject', 'submitForm',
+    // External references
+    'launch(', 'getURL(', 'GoToR', '/URI',
+    // Embedded files
+    '/EmbeddedFile', '/FileAttachment', '/Launch',
+    // Form actions
+    '/SubmitForm', '/ImportData'
+  ],
+  BLOCKED_CONTENT_TYPES: [
+    'application/javascript', 'text/javascript', 'application/x-javascript'
+  ]
+};
 
 // Configure storage with async directory creation
 const storage = multer.diskStorage({
@@ -47,6 +69,127 @@ export const upload = multer({
   limits: { fileSize: MAX_FILE_SIZE },
   fileFilter
 });
+
+// PDF Security Scanner
+class PDFSecurityScanner {
+  static async scanPDFForMalware(filePath, buffer = null) {
+    const pdfBuffer = buffer || await fs.readFile(filePath);
+    const results = {
+      isSafe: true,
+      threats: [],
+      warnings: [],
+      metadata: {}
+    };
+
+    try {
+      // Size check
+      if (pdfBuffer.length > PDF_SECURITY_CONFIG.MAX_PDF_SIZE) {
+        results.isSafe = false;
+        results.threats.push(`PDF size (${Math.round(pdfBuffer.length / 1024 / 1024)}MB) exceeds security limit`);
+      }
+
+      // Convert buffer to string for pattern matching
+      const pdfContent = pdfBuffer.toString('binary');
+      
+      // Check PDF header
+      if (!pdfContent.startsWith('%PDF-')) {
+        results.isSafe = false;
+        results.threats.push('Invalid PDF header - potential file type spoofing');
+        return results;
+      }
+
+      // Extract PDF version
+      const versionMatch = pdfContent.match(/%PDF-(\d+\.\d+)/);
+      if (versionMatch) {
+        results.metadata.version = versionMatch[1];
+      }
+
+      // Check for suspicious keywords
+      for (const keyword of PDF_SECURITY_CONFIG.SUSPICIOUS_KEYWORDS) {
+        if (pdfContent.includes(keyword)) {
+          if (keyword.includes('JavaScript') || keyword.includes('/JS')) {
+            results.isSafe = false;
+            results.threats.push(`Potentially malicious JavaScript detected: ${keyword}`);
+          } else if (keyword.includes('launch') || keyword.includes('getURL') || keyword.includes('/URI')) {
+            results.isSafe = false;
+            results.threats.push(`External execution attempt detected: ${keyword}`);
+          } else if (keyword.includes('EmbeddedFile') || keyword.includes('FileAttachment')) {
+            results.warnings.push(`Embedded file detected: ${keyword} - Exercise caution`);
+          } else {
+            results.warnings.push(`Suspicious content detected: ${keyword}`);
+          }
+        }
+      }
+
+      // Check for embedded files or attachments
+      const embedCount = (pdfContent.match(/\/EmbeddedFile/g) || []).length;
+      if (embedCount > 0) {
+        results.warnings.push(`${embedCount} embedded file(s) detected`);
+      }
+
+      // Check for forms with external actions
+      if (pdfContent.includes('/SubmitForm') && pdfContent.includes('http')) {
+        results.isSafe = false;
+        results.threats.push('Form with external submission detected - potential data exfiltration');
+      }
+
+      // Check object count (complexity analysis)
+      const objCount = (pdfContent.match(/\d+ \d+ obj/g) || []).length;
+      results.metadata.objectCount = objCount;
+      if (objCount > 1000) {
+        results.warnings.push(`High object count (${objCount}) - complex PDF structure`);
+      }
+
+      // Check for encryption
+      if (pdfContent.includes('/Encrypt')) {
+        results.warnings.push('Encrypted PDF detected');
+        results.metadata.encrypted = true;
+      }
+
+      // Additional entropy check for obfuscation
+      const entropy = this.calculateEntropy(pdfBuffer.slice(0, Math.min(pdfBuffer.length, 10000)));
+      results.metadata.entropy = entropy;
+      if (entropy > 7.5) {
+        results.warnings.push(`High entropy (${entropy.toFixed(2)}) - possible obfuscation`);
+      }
+
+      // File hash for tracking
+      results.metadata.sha256 = crypto.createHash('sha256').update(pdfBuffer).digest('hex');
+
+    } catch (error) {
+      console.error('PDF security scan error:', error);
+      results.isSafe = false;
+      results.threats.push(`Scan error: ${error.message}`);
+    }
+
+    return results;
+  }
+
+  static calculateEntropy(buffer) {
+    const freq = new Map();
+    for (let i = 0; i < buffer.length; i++) {
+      const byte = buffer[i];
+      freq.set(byte, (freq.get(byte) || 0) + 1);
+    }
+
+    let entropy = 0;
+    const length = buffer.length;
+    for (const count of freq.values()) {
+      const p = count / length;
+      entropy -= p * Math.log2(p);
+    }
+
+    return entropy;
+  }
+
+  static async validatePDFPages(pdfData) {
+    const pageCount = pdfData?.numpages || 0;
+    if (pageCount > PDF_SECURITY_CONFIG.MAX_PAGES) {
+      throw new Error(`PDF page count (${pageCount}) exceeds security limit of ${PDF_SECURITY_CONFIG.MAX_PAGES}`);
+    }
+    return pageCount;
+  }
+}
 
 // Build a sharp pipeline based on options
 async function buildAndSaveSharp(inputPath, outputPath, opts) {
@@ -116,19 +259,70 @@ export const processReceipt = asyncHandler(async (req, res) => {
     // Detect and handle PDF files using direct text extraction first
     const isPdf = (req.file.mimetype === 'application/pdf' || path.extname(req.file.originalname || req.file.filename || '').toLowerCase() === '.pdf');
     if (isPdf) {
+      // SECURITY: Perform malware scan on PDF
+      const pdfBuffer = await fs.readFile(req.file.path);
+      console.log('Performing PDF security scan...');
+      const securityScan = await PDFSecurityScanner.scanPDFForMalware(req.file.path, pdfBuffer);
+      
+      // Log security scan results
+      if (securityScan.threats.length > 0) {
+        console.error('PDF security threats detected:', securityScan.threats);
+      }
+      if (securityScan.warnings.length > 0) {
+        console.warn('PDF security warnings:', securityScan.warnings);
+      }
+
+      // Block processing if threats detected
+      if (!securityScan.isSafe) {
+        // Clean up the uploaded file
+        try {
+          await fs.unlink(req.file.path);
+        } catch (cleanupError) {
+          console.error('Failed to clean up unsafe PDF:', cleanupError);
+        }
+
+        return res.status(400).json({
+          success: false,
+          error: 'PDF failed security scan',
+          securityIssues: securityScan.threats,
+          details: 'The uploaded PDF contains potentially malicious content and has been rejected for security reasons.'
+        });
+      }
+
       // Lazy-load the safe lib entry to avoid the test harness in the package root
       const { default: pdfParse } = await import('pdf-parse/lib/pdf-parse.js');
 
-      const pdfBuffer = await fs.readFile(req.file.path);
       const pdfData = await pdfParse(pdfBuffer);
+      
+      // Validate page count
+      try {
+        await PDFSecurityScanner.validatePDFPages(pdfData);
+      } catch (pageError) {
+        await fs.unlink(req.file.path);
+        return res.status(400).json({
+          success: false,
+          error: pageError.message
+        });
+      }
+
       const text = (pdfData && typeof pdfData.text === 'string') ? pdfData.text : '';
       const parsed = parseReceiptText(text || '');
 
       return res.status(200).json({
         success: true,
         receiptUrl: req.file.path.replace(/\\/g, '/'),
-        ocr: { source: 'pdf-text', pages: pdfData?.numpages || undefined, rawTextPreview: (text || '').slice(0, 500) },
-        extractedData: validateExtractedData(parsed || { amount: null, date: null, merchant: 'Unknown Merchant', items: [], category: 'Other' })
+        ocr: { 
+          source: 'pdf-text', 
+          pages: pdfData?.numpages || undefined, 
+          rawTextPreview: (text || '').slice(0, 500) 
+        },
+        extractedData: validateExtractedData(parsed || { amount: null, date: null, merchant: 'Unknown Merchant', items: [], category: 'Other' }),
+        security: {
+          scanned: true,
+          safe: true,
+          warnings: securityScan.warnings,
+          metadata: securityScan.metadata
+        }
       });
     }
 
@@ -180,7 +374,12 @@ export const processReceipt = asyncHandler(async (req, res) => {
       success: true,
       receiptUrl: req.file.path.replace(/\\/g, '/'),
       ocr: { confidence: best.confidence, variant: path.basename(best.path || ''), rawTextPreview: (best.text || '').slice(0, 500) },
-      extractedData: validateExtractedData(best.parsed || { amount: null, date: null, merchant: 'Unknown Merchant', items: [], category: 'Other' })
+      extractedData: validateExtractedData(best.parsed || { amount: null, date: null, merchant: 'Unknown Merchant', items: [], category: 'Other' }),
+      security: {
+        scanned: false,
+        safe: true,
+        note: 'Image files processed without additional security scanning'
+      }
     });
 
   } catch (error) {
