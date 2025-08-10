@@ -48,31 +48,59 @@ export const upload = multer({
   fileFilter
 });
 
-// Enhanced image preprocessing for better OCR results
-const preprocessImage = async (filePath) => {
-  try {
-    await fs.mkdir(TEMP_DIR, { recursive: true });
-    const processedPath = path.join(TEMP_DIR, `${path.basename(filePath)}-processed.jpg`);
-    
-    await sharp(filePath)
-      .rotate() // Auto-orient based on EXIF data
-      .grayscale() // Convert to grayscale
-      .normalize({ upper: 95 }) // Fixed typo: normalise -> normalize
-      .modulate({ brightness: 1.1 }) // Slightly brighten
-      .sharpen({ sigma: 1.3 }) // Improved sharpening
-      .median(1) // Remove noise
-      .threshold(128) // Better text/background separation
-      .toFormat('jpeg', { quality: 90 })
-      .toFile(processedPath);
-      
-    return processedPath;
-  } catch (error) {
-    console.error('Image preprocessing error:', error);
-    throw new Error('Failed to preprocess image');
-  }
-};
+// Build a sharp pipeline based on options
+async function buildAndSaveSharp(inputPath, outputPath, opts) {
+  const {
+    toGray = true,
+    normalize = true,
+    brightness = 1.0,
+    sharpenSigma = 1.0,
+    median = 0,
+    threshold = null,
+    resizeWidth = null,
+    jpegQuality = 92,
+  } = opts || {};
 
-// Extract data from receipt using OCR
+  let img = sharp(inputPath, { failOnError: false }).rotate(); // auto-orient via EXIF
+  if (toGray) img = img.grayscale();
+  if (normalize) img = img.normalize({ upper: 95 });
+  if (brightness !== 1.0) img = img.modulate({ brightness });
+  if (sharpenSigma && sharpenSigma > 0) img = img.sharpen({ sigma: sharpenSigma });
+  if (median && median > 0) img = img.median(median);
+  if (resizeWidth && Number.isFinite(resizeWidth)) img = img.resize({ width: resizeWidth, withoutEnlargement: false });
+  if (threshold !== null) img = img.threshold(threshold);
+
+  await img.toFormat('jpeg', { quality: jpegQuality }).toFile(outputPath);
+}
+
+// Generate multiple preprocessing variants to improve OCR robustness
+async function preprocessImageVariants(filePath) {
+  await fs.mkdir(TEMP_DIR, { recursive: true });
+  const baseName = path.basename(filePath, path.extname(filePath));
+
+  const variants = [
+    { key: 'gray_norm_thr140', opts: { toGray: true, normalize: true, brightness: 1.05, sharpenSigma: 1.2, median: 1, threshold: 140, resizeWidth: 1800 } },
+    { key: 'gray_norm_thr170', opts: { toGray: true, normalize: true, brightness: 1.1, sharpenSigma: 1.3, median: 1, threshold: 170, resizeWidth: 2000 } },
+    { key: 'gray_norm_noThr_big', opts: { toGray: true, normalize: true, brightness: 1.05, sharpenSigma: 1.1, median: 1, threshold: null, resizeWidth: 2200 } },
+    { key: 'gray_highContrast_thr160', opts: { toGray: true, normalize: true, brightness: 1.15, sharpenSigma: 1.4, median: 1, threshold: 160, resizeWidth: 2000 } },
+  ];
+
+  const outputs = [];
+  for (const v of variants) {
+    const outPath = path.join(TEMP_DIR, `${baseName}-${v.key}.jpg`);
+    try {
+      await buildAndSaveSharp(filePath, outPath, v.opts);
+      outputs.push(outPath);
+    } catch (e) {
+      console.error('Preprocess variant failed:', v.key, e);
+    }
+  }
+  // Fallback to original path if all preprocessing failed
+  if (outputs.length === 0) outputs.push(filePath);
+  return outputs;
+}
+
+// Extract data from receipt using OCR with multi-variant strategy
 export const processReceipt = asyncHandler(async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ 
@@ -82,39 +110,60 @@ export const processReceipt = asyncHandler(async (req, res) => {
   }
 
   let worker;
-  let processedImagePath = null;
-  
+  let processedPaths = [];
+
   try {
-    // Preprocess the image for better OCR results
-    processedImagePath = await preprocessImage(req.file.path);
-    
     // Initialize Tesseract worker with improved configuration
     worker = await createWorker('eng', 1, {
-      logger: m => console.debug('Tesseract:', m.status),
+      logger: m => console.debug('Tesseract:', m.status || m),
       errorHandler: err => console.error('Tesseract error:', err)
     });
-    
+
     await worker.setParameters({
-      tessedit_char_whitelist: '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,./$:;()&\'"-+ ',
+      // Use a wider currency-enabled whitelist; keep spaces
+      tessedit_char_whitelist: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ£€₦₵₹₽¥$.,:/\\-()&'\"+ ",
       preserve_interword_spaces: '1',
-      tessedit_ocr_engine_mode: '3', // Legacy + LSTM engines
+      tessedit_pageseg_mode: '6', // Assume a uniform block of text
+      tessedit_ocr_engine_mode: '1', // LSTM only for better accuracy
+      user_defined_dpi: '300',
     });
-    
-    // Process the image with Tesseract OCR
-    const { data: { text } } = await worker.recognize(processedImagePath);
-    console.log('OCR Raw Text:', text); // Log for debugging
-    
-    // Extract relevant information from OCR text
-    const extractedData = parseReceiptText(text);
-    console.log('Parsed receipt data:', extractedData); // Log parsed data
-    
+
+    // Preprocess image into multiple variants
+    processedPaths = await preprocessImageVariants(req.file.path);
+
+    // Recognize each variant, pick best by confidence + parsing heuristics
+    let best = { score: -Infinity, text: '', confidence: 0, parsed: null, path: null };
+
+    for (const p of processedPaths) {
+      const result = await worker.recognize(p);
+      const text = (result && result.data && typeof result.data.text === 'string') ? result.data.text : String(result.data || '');
+      const confidence = (result && result.data && typeof result.data.confidence === 'number') ? result.data.confidence : 0;
+
+      const parsed = parseReceiptText(text);
+
+      // Heuristic scoring: prioritize valid amount/date/merchant + OCR confidence
+      let score = 0;
+      score += Math.min(Math.max(confidence, 0), 100) * 0.5; // up to 50 points
+      if (parsed.amount && parsed.amount > 0) score += 25; // amount found
+      if (parsed.date) score += 15; // date found
+      if (parsed.merchant && parsed.merchant !== 'Unknown Merchant') score += 8; // merchant found
+      if (parsed.items && parsed.items.length > 0) score += 2; // items detected
+
+      if (score > best.score) {
+        best = { score, text, confidence, parsed, path: p };
+      }
+    }
+
+    console.log('Selected OCR variant:', best.path, 'score:', best.score, 'confidence:', best.confidence);
+
     // Return the extracted data
     res.status(200).json({
       success: true,
       receiptUrl: req.file.path.replace(/\\/g, '/'),
-      extractedData: validateExtractedData(extractedData)
+      ocr: { confidence: best.confidence, variant: path.basename(best.path || ''), rawTextPreview: (best.text || '').slice(0, 500) },
+      extractedData: validateExtractedData(best.parsed || { amount: null, date: null, merchant: 'Unknown Merchant', items: [], category: 'Other' })
     });
-    
+
   } catch (error) {
     console.error('OCR processing error:', error);
     res.status(500).json({ 
@@ -124,13 +173,13 @@ export const processReceipt = asyncHandler(async (req, res) => {
   } finally {
     // Clean up resources
     if (worker) await worker.terminate();
-    
+
     // Clean up temporary files
-    if (processedImagePath) {
-      try {
-        await fs.unlink(processedImagePath).catch(() => {});
-      } catch (err) {
-        console.error('Failed to delete temporary file:', err);
+    for (const p of processedPaths) {
+      if (!p) continue;
+      // Never delete the original upload
+      if (path.resolve(p) !== path.resolve(req.file.path)) {
+        try { await fs.unlink(p); } catch (_) {}
       }
     }
   }
@@ -138,13 +187,12 @@ export const processReceipt = asyncHandler(async (req, res) => {
 
 // Enhanced helper function to parse OCR text and extract expense data
 function parseReceiptText(text) {
-  // Normalize text - remove multiple spaces, handle lowercase
   const normalizedText = text.replace(/\s+/g, ' ').trim();
   const lowerText = normalizedText.toLowerCase();
   const lines = text.split('\n').map(line => line.trim()).filter(Boolean);
   
   return {
-    amount: extractTotalAmount(normalizedText, lowerText),
+    amount: extractTotalAmount(lines, normalizedText, lowerText),
     date: extractDate(normalizedText, lines),
     merchant: extractMerchant(lines),
     items: extractItems(lines),
@@ -152,84 +200,85 @@ function parseReceiptText(text) {
   };
 }
 
-// Improved total amount extraction
-function extractTotalAmount(text, lowerText) {
-  // Add a direct check for "TOTAL: 1000 $" format first
-  const totalWithDollarSign = text.match(/total:?\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)(?:\s*\$)/i);
-  if (totalWithDollarSign) {
-    return parseFloat(totalWithDollarSign[1]);
-  }
-  
-  // Your existing patterns
-  const patterns = [
-    { regex: /total:?\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)(?:\s*\$)?/i, group: 1 },
-    { regex: /(?:total|balance due|grand total|amount due)[:\s]+\$?(\d{1,3}(?:,\d{3})*(?:\.\d{2}))/i, group: 1 },
-    { regex: /total.*?(\$\s*\d+\.\d{2})/i, group: 1 },
-    { regex: /(\$\s*\d+\.\d{2}).*total/i, group: 1 },
-    { regex: /\$\s*(\d+(?:\.\d{2}))/g, group: 1, all: true },
-    { regex: /(\d+\.\d{2})/g, group: 1, all: true }
-  ];
-  
-  for (const pattern of patterns) {
-    if (pattern.all) {
-      const matches = [...text.matchAll(pattern.regex)];
-      if (matches.length > 0) {
-        const amounts = matches.map(m => parseFloat(m[pattern.group].replace(/[^\d.]/g, '')));
-        if (pattern.regex.toString().includes('all')) {
-          const totalIndex = lowerText.indexOf('total');
-          if (totalIndex > -1) {
-            const amountsAfterTotal = matches
-              .filter(m => m.index > totalIndex)
-              .map(m => parseFloat(m[pattern.group].replace(/[^\d.]/g, '')));
-            if (amountsAfterTotal.length > 0) return amountsAfterTotal[0];
-          }
-        }
-        return Math.max(...amounts);
-      }
-    } else {
-      const match = text.match(pattern.regex);
-      if (match) return parseFloat(match[pattern.group].replace(/[^\d.]/g, ''));
+// Improved total amount extraction with fuzzy TOTAL matching and line proximity
+function extractTotalAmount(lines, text, lowerText) {
+  // Prefer lines containing a fuzzy form of TOTAL
+  const totalWord = /(t[o0]tal|t0tal|grand\s*t[o0]tal|amount\s*due|balance\s*due)/i;
+  const currencyAmount = /([£€₦₵₹₽¥$]?\s?\d{1,3}(?:[\,\s]\d{3})*(?:[\.,]\d{2})|[£€₦₵₹₽¥$]\s?\d+(?:[\.,]\d{2})?)/g;
+
+  for (let i = 0; i < lines.length; i++) {
+    if (totalWord.test(lines[i])) {
+      // Extract amounts from this line first
+      const amountsOnLine = [...lines[i].matchAll(currencyAmount)].map(m => m[0]);
+      // Or check the next line (common in receipts)
+      const nextLine = lines[i + 1] || '';
+      const amountsNextLine = [...nextLine.matchAll(currencyAmount)].map(m => m[0]);
+      const all = [...amountsOnLine, ...amountsNextLine]
+        .map(a => parseFloat(a.replace(/[^\d.,]/g, '').replace(/,(?=\d{3}\b)/g, '').replace(',', '.')))
+        .filter(n => !Number.isNaN(n));
+      if (all.length) return Math.max(...all);
     }
+  }
+
+  // Fallbacks: scan entire text for currency-like numbers and pick the largest, but prefer occurrences after the word TOTAL
+  const matches = [...text.matchAll(currencyAmount)];
+  if (matches.length) {
+    const amounts = matches.map(m => ({ idx: m.index || 0, val: parseFloat(m[0].replace(/[^\d.,]/g, '').replace(/,(?=\d{3}\b)/g, '').replace(',', '.')) }))
+      .filter(o => !Number.isNaN(o.val));
+    const totalIdx = lowerText.indexOf('total');
+    if (totalIdx >= 0) {
+      const after = amounts.filter(a => a.idx >= totalIdx);
+      if (after.length) return Math.max(...after.map(a => a.val));
+    }
+    return Math.max(...amounts.map(a => a.val));
   }
   return null;
 }
 
-// Enhanced date extraction
+// Enhanced date extraction supporting more formats
 function extractDate(text, lines) {
   const datePatterns = [
-    // Add new pattern for "APRIL 12. 2023" format
+    // APRIL 12. 2023 or Apr 12, 2023
     { 
-      regex: /\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* (\d{1,2})[\.,]?\s*(\d{4})\b/i,
+      regex: /\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+(\d{1,2})[\.,]?\s*(\d{4})\b/i,
       format: (m) => {
         const months = {
           january: '01', february: '02', march: '03', april: '04', may: '05', june: '06',
           july: '07', august: '08', september: '09', october: '10', november: '11', december: '12',
-          jan: '01', feb: '02', mar: '03', apr: '04', jun: '06', jul: '07', aug: '08', 
+          jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06', jul: '07', aug: '08',
           sep: '09', oct: '10', nov: '11', dec: '12'
         };
-        const monthName = m[1].toLowerCase();
+        const monthName = m[1].toLowerCase().substring(0, 3);
         const month = months[monthName];
         return `${m[3]}-${month}-${m[2].padStart(2, '0')}`;
       }
     },
+    // 2023-04-12 or 2023/04/12 or 2023.04.12
     { 
-      regex: /\b(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})\b/,
+      regex: /\b(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})\b/,
       format: (m) => `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`
     },
+    // 12-04-2023 or 12/04/2023 or 12.04.2023
     { 
-      regex: /\b(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})\b/,
-      format: (m) => `${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}`
+      regex: /\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})\b/,
+      format: (m) => `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`
     },
-    { 
-      regex: /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* (\d{1,2}),?\s*(\d{4})\b/i,
+    // 12-APR-2023 or 12 Apr 2023
+    {
+      regex: /\b(\d{1,2})[\s\-](Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[\s\-](\d{4})\b/i,
       format: (m) => {
-        const months = {
-          jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
-          jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12
-        };
-        const monthAbbr = m[1].toLowerCase().substring(0, 3);
-        const month = months[monthAbbr];
-        return `${m[3]}-${month.toString().padStart(2, '0')}-${m[2].padStart(2, '0')}`;
+        const months = { jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06', jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12' };
+        const mon = months[m[2].toLowerCase().substring(0,3)];
+        return `${m[3]}-${mon}-${m[1].padStart(2, '0')}`;
+      }
+    },
+    // 12th April 2023
+    {
+      regex: /\b(\d{1,2})(?:st|nd|rd|th)?\s+(January|February|March|April|May|June|July|August|September|October|November|December)[a-z]*\s+(\d{4})\b/i,
+      format: (m) => {
+        const months = { january: '01', february: '02', march: '03', april: '04', may: '05', june: '06', july: '07', august: '08', september: '09', october: '10', november: '11', december: '12' };
+        const mon = months[m[2].toLowerCase()];
+        return `${m[3]}-${mon}-${m[1].padStart(2,'0')}`;
       }
     }
   ];
@@ -250,7 +299,7 @@ function extractDate(text, lines) {
           try {
             return format(match);
           } catch (e) {
-            console.error("Date parsing error:", e);
+            console.error('Date parsing error:', e);
           }
         }
       }
@@ -264,20 +313,20 @@ function extractDate(text, lines) {
       try {
         return format(match);
       } catch (e) {
-        console.error("Date parsing error:", e);
+        console.error('Date parsing error:', e);
       }
     }
   }
 
-  // Check first 5 lines
-  for (const line of lines.slice(0, 5)) {
+  // Check first 7 lines
+  for (const line of lines.slice(0, 7)) {
     for (const { regex, format } of datePatterns) {
       const match = line.match(regex);
       if (match) {
         try {
           return format(match);
         } catch (e) {
-          console.error("Date parsing error:", e);
+          console.error('Date parsing error:', e);
         }
       }
     }
@@ -291,133 +340,98 @@ function extractMerchant(lines) {
   const skipPatterns = [
     /receipt/i, /invoice/i, /order/i, /transaction/i, /\btel\b/i, 
     /phone/i, /fax/i, /^\d+$/, /^\s*$/,
-    /thank you/i, /welcome/i, /customer/i, /\bdate\b/i,
+    /thank you/i, /welcome/i, /customer/i, /\bdate\b/i, /time/i, /change/i, /subtotal/i, /total/i, /tax/i,
     /\d{4,}/, /\d+\s+[a-z]+\s+\d{2,}/i, // Skip date-like patterns with numbers
-    /april|may|june|july|august|september|october|november|december/i // Skip lines with month names
+    /april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec/i // Skip lines with month names
   ];
-  
-  // Look for company name explicitly
-  const companyPatterns = [/company\s+name/i, /health/i, /emergency/i, /services/i, /urgent/i]; 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (companyPatterns.some(pattern => pattern.test(line))) {
-      // If we find "COMPANY NAME", use the next non-empty line as merchant
-      if (/company\s+name/i.test(line) && i+1 < lines.length) {
-        const nextLine = lines[i+1].trim();
-        if (nextLine && nextLine.length > 3) {
-          return nextLine;
-        }
-      }
-      return line.replace(/company\s+name/i, '').trim() || "Health Services";
-    }
+
+  // Prefer top region lines that look like a merchant name
+  const candidates = [];
+  const topRegion = lines.slice(0, Math.min(10, lines.length));
+  for (let i = 0; i < topRegion.length; i++) {
+    const line = topRegion[i].trim();
+    if (!line || line.length < 2) continue;
+    if (skipPatterns.some(p => p.test(line))) continue;
+    if (/\$|£|€|₦|₵|₹|₽|¥/.test(line)) continue; // skip money lines
+    if (/\d/.test(line) && !/[a-zA-Z]/.test(line)) continue; // numeric-only
+
+    // Score by uppercase ratio and position
+    const letters = line.replace(/[^A-Za-z]/g, '');
+    const upperRatio = letters ? (letters.replace(/[^A-Z]/g, '').length / letters.length) : 0;
+    let score = (10 - i) + upperRatio * 5;
+
+    // Bonus if it contains common business words
+    if (/(store|market|shop|restaurant|cafe|pharmacy|clinic|mart|supermarket|ltd|inc|llc|plc)/i.test(line)) score += 3;
+
+    candidates.push({ line, score });
   }
-  
-  let merchantCandidates = [];
-  
-  for (let i = 0; i < Math.min(5, lines.length); i++) {
-    const line = lines[i].trim();
-    if (line.length > 2 && !skipPatterns.some(pattern => pattern.test(line))) {
-      merchantCandidates.push({ line, score: 10 - i });
-    }
+
+  if (candidates.length) {
+    candidates.sort((a, b) => b.score - a.score);
+    return candidates[0].line;
   }
-  
-  const merchantIndicators = [/store/i, /market/i, /shop/i, /restaurant/i, /cafe/i];
-  for (let i = 0; i < Math.min(10, lines.length); i++) {
-    const line = lines[i].trim();
-    if (merchantIndicators.some(pattern => pattern.test(line))) {
-      merchantCandidates.push({ line, score: 8 }); 
-    }
-  }
-  
-  const namePattern = /^[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+$/;
-  for (let i = 0; i < Math.min(5, lines.length); i++) {
-    const line = lines[i].trim();
-    if (namePattern.test(line)) {
-      merchantCandidates.push({ line, score: 7 }); 
-    }
-  }
-  
-  if (merchantCandidates.length > 0) {
-    merchantCandidates.sort((a, b) => b.score - a.score);
-    return merchantCandidates[0].line;
-  }
-  
+
   for (const line of lines) {
-    if (line.trim().length > 0) return line.trim();
+    const l = line.trim();
+    if (l) return l; // last resort
   }
-  
-  return "Unknown Merchant";
+
+  return 'Unknown Merchant';
 }
 
 // Extract potential line items from receipt
 function extractItems(lines) {
-  // Look for items section
+  // Try to locate an items region between a header and the TOTAL
   let startOfItems = -1;
   let endOfItems = -1;
-  
-  // Find the start of items section (after "DESCRIPTION QUANTITY PRICE TOTAL")
+
   for (let i = 0; i < lines.length; i++) {
-    if (/description\s+quantity\s+price\s+total/i.test(lines[i])) {
+    if (/description\s+quantity\s+price\s+total/i.test(lines[i]) || /item\s+qty|qty\s+price/i.test(lines[i])) {
       startOfItems = i + 1;
       break;
     }
   }
-  
-  // Find end of items section (before TOTAL)
+
   if (startOfItems > 0) {
     for (let i = startOfItems; i < lines.length; i++) {
-      if (/^\s*total/i.test(lines[i])) {
+      if (/^\s*(sub\s*total|subtotal|total|amount\s*due)/i.test(lines[i])) {
         endOfItems = i;
         break;
       }
     }
   }
-  
+
   const items = [];
-  
-  // Extract items from the found section
+
+  const pushClean = (line) => {
+    const cleaned = line
+      .replace(/^\d+\s+/, '') // leading index
+      .replace(/\s{2,}/g, ' ') // normalize spaces
+      .replace(/\s+\$?\d+[\.,]\d{2}\s*$/, '') // trailing price
+      .trim();
+    if (cleaned && cleaned.length > 1 && !/^(description|quantity|qty|price|total)$/i.test(cleaned)) {
+      items.push(cleaned);
+    }
+  };
+
   if (startOfItems > 0 && endOfItems > startOfItems) {
     for (let i = startOfItems; i < endOfItems; i++) {
       const line = lines[i].trim();
-      if (line && !/^\s*$/.test(line)) {
-        // Clean up item lines - remove number prefixes and quantities
-        const cleanedItem = line.replace(/^\d+\s+/, '')
-                               .replace(/\s+\d+\s*$/, '')
-                               .replace(/\s{2,}/g, ' ')
-                               .trim();
-        
-        if (cleanedItem && cleanedItem.length > 2) {
-          items.push(cleanedItem);
-        }
-      }
+      if (!line) continue;
+      pushClean(line);
     }
   }
-  
-  // If no items found using the section approach, fall back to your original method
+
+  // Fallback: heuristic extraction for lines that end with a price
   if (items.length === 0) {
-    const itemPatterns = [
-      /^\d+\s+(.+?)\s+\$?\d+\.\d{2}$/,
-      /^(.+?)\s+\$?\d+\.\d{2}$/,
-      /^\$?\d+\.\d{2}\s+(.+)$/
-    ];
-    
+    const priceAtEnd = /\$?\s?\d+(?:[\.,]\d{2})\s*$/;
     for (const line of lines) {
-      for (const pattern of itemPatterns) {
-        const match = line.match(pattern);
-        if (match && match[1] && match[1].trim().length > 2) {
-          items.push(match[1].trim());
-          break;
-        }
-      }
-      
-      // Look for "Lorem ipsum" format items
-      if (/Lorem/i.test(line)) {
-        const cleanedItem = line.replace(/^\d+\s+/, '').trim();
-        if (cleanedItem) items.push(cleanedItem);
-      }
+      const l = line.trim();
+      if (!l) continue;
+      if (priceAtEnd.test(l)) pushClean(l);
     }
   }
-  
+
   return items;
 }
 
@@ -484,7 +498,7 @@ function determineCategory(lines) {
       /miscellaneous|misc|other|general|various|assorted|diverse|mixed|unspecified|unidentified|unknown|undefined/i,
       /additional|extra|supplementary|complementary|alternative|optional|secondary|tertiary|auxiliary/i
     ]
-};
+  };
 
   for (const [category, patterns] of Object.entries(CATEGORIES)) {
     if (patterns.some(pattern => pattern.test(textToAnalyze))) {
@@ -494,50 +508,21 @@ function determineCategory(lines) {
   return 'Other';
 }
 
-// Data validation
+// Data validation and normalization
 function validateExtractedData(data) {
-  // Get services info for description if merchant seems to be healthcare related
-  let serviceTitle = "";
-  
-  if (/health|urgent|emergency|service/i.test(data.merchant)) {
-    // Look for service titles in items
-    const serviceItems = data.items?.filter(item => 
-      /health|result|service|emergency|urgent/i.test(item)
-    );
-    
-    if (serviceItems && serviceItems.length > 0) {
-      serviceTitle = serviceItems.join(", ");
-    }
-  }
-  
-  // Create better description using merchant and meaningful items
-  let description = data.merchant || '';
-  if (description.includes("APRIL") || description.includes("66761")) {
-    // Don't use date as merchant/description
-    description = "Health Services";
-  }
-  
-  // Add service title if available
-  if (serviceTitle) {
-    description = `${serviceTitle}`;
-  } else {
-    // Filter items to remove headers and non-descriptive content
-    const meaningfulItems = data.items?.filter(item => {
-      return !/^(description|quantity|price|total|company|name|\d+$)/i.test(item);
-    }) || [];
-    
-    // Add meaningful items to description
-    if (meaningfulItems.length > 0) {
-      description += `: ${meaningfulItems.slice(0, 2).join(', ')}`;
-    }
-  }
+  const merchant = data.merchant && data.merchant.trim() ? data.merchant.trim() : 'Unknown Merchant';
+
+  // Build description from meaningful items or merchant name
+  const meaningfulItems = (data.items || []).filter(item => !/^(description|quantity|qty|price|total|company|name|tax|change|subtotal|cash)$/i.test(item));
+  const description = meaningfulItems.length > 0
+    ? `${merchant}: ${meaningfulItems.slice(0, 2).join(', ')}`
+    : merchant;
 
   return {
     ...data,
-    amount: data.amount && !isNaN(data.amount) ? Number(data.amount) : 1000, // Fallback to 1000 if no amount
+    amount: data.amount && !isNaN(data.amount) ? Number(data.amount) : 1000, // preserve existing fallback behavior
     date: data.date && !isNaN(Date.parse(data.date)) ? data.date : null,
-    merchant: /health|urgent|emergency|service/i.test(data.merchant) ? 
-              data.merchant : "Health Services",
-    description: description || "Medical Services"
+    merchant,
+    description: description || 'Receipt'
   };
 }
