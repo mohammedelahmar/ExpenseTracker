@@ -4,7 +4,8 @@ import {
   getSpendingTrends, 
   getSpendingForecasts, 
   getAnomalyDetection, 
-  getPersonalizedTips 
+  getPersonalizedTips,
+  getAnalyticsSummary
 } from '../controllers/analyticsController.js';
 
 const router = express.Router();
@@ -19,6 +20,7 @@ router.get('/trends', protect, getSpendingTrends);
 router.get('/forecasts', protect, getSpendingForecasts);
 router.get('/anomalies', protect, getAnomalyDetection);
 router.get('/recommendations', protect, getPersonalizedTips);
+router.get('/summary', protect, getAnalyticsSummary);
 
 console.log('Analytics routes registered:', router.stack.map(r => r.route?.path).filter(Boolean));
 
