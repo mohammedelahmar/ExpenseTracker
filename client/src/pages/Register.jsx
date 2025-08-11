@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import authService from '../services/authService';
 import { GoogleLogin } from '@react-oauth/google';
+import { ArrowLeft } from 'lucide-react';
 import '../styles/Login.css';
 
 const Register = () => {
@@ -31,8 +32,18 @@ const Register = () => {
       return setError('All fields are required');
     }
     
+    if (password.length < 6) {
+      return setError('Password must be at least 6 characters long');
+    }
+    
     if (password !== confirmPassword) {
       return setError('Passwords do not match');
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return setError('Please enter a valid email address');
     }
     
     try {
@@ -83,6 +94,14 @@ const Register = () => {
   return (
     <div className="auth-container">
       <div className="auth-form-container">
+        {/* Go Back Button */}
+        <div className="go-back-container">
+          <Link to="/" className="go-back-btn">
+            <ArrowLeft size={16} />
+            <span>Back to Home</span>
+          </Link>
+        </div>
+        
         <div className="auth-form-header">
           <h1>Create Account</h1>
           <p>Start tracking your expenses today</p>
@@ -102,6 +121,7 @@ const Register = () => {
               onChange={handleChange}
               required
               placeholder="Choose a username"
+              minLength="3"
             />
           </div>
           
@@ -130,7 +150,7 @@ const Register = () => {
               onChange={handleChange}
               required
               minLength="6"
-              placeholder="Create a password"
+              placeholder="Create a password (min 6 characters)"
             />
           </div>
           

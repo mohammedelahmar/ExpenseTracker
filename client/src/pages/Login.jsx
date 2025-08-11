@@ -1,8 +1,9 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import authService from '../services/authService'; // Import authService
+import authService from '../services/authService';
 import { GoogleLogin } from '@react-oauth/google';
+import { ArrowLeft } from 'lucide-react';
 import '../styles/Login.css';
 
 const Login = () => {
@@ -30,6 +31,18 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Basic validation
+    if (!formData.email || !formData.password) {
+      return setError('Both email and password are required');
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      return setError('Please enter a valid email address');
+    }
+    
     setLoading(true);
     setError('');
 
@@ -44,7 +57,7 @@ const Login = () => {
       navigate('/dashboard');
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.message || 'An error occurred. Please try again.');
+      setError(err.message || 'Invalid credentials. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -61,7 +74,7 @@ const Login = () => {
       navigate('/dashboard');
     } catch (err) {
       console.error('Google login error:', err);
-      setError(err.message || 'An error occurred. Please try again.');
+      setError(err.message || 'Google sign-in failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -74,6 +87,14 @@ const Login = () => {
   return (
     <div className="auth-container">
       <div className="auth-form-container">
+        {/* Go Back Button */}
+        <div className="go-back-container">
+          <Link to="/" className="go-back-btn">
+            <ArrowLeft size={16} />
+            <span>Back to Home</span>
+          </Link>
+        </div>
+        
         <div className="auth-form-header">
           <h1>Welcome Back</h1>
           <p>Sign in to your account</p>
@@ -93,6 +114,7 @@ const Login = () => {
               onChange={handleInputChange}
               required
               placeholder="Enter your email"
+              autoComplete="email"
             />
           </div>
           
@@ -108,6 +130,7 @@ const Login = () => {
               required
               minLength="6"
               placeholder="Enter your password"
+              autoComplete="current-password"
             />
           </div>
           
