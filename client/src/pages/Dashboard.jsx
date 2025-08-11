@@ -189,7 +189,7 @@ const Dashboard = () => {
     });
   };
 
-  // Prepare bar chart data
+  // Prepare bar chart data with responsive options
   const barChartData = {
     labels: monthlyChartData.labels || [],
     datasets: [
@@ -203,6 +203,78 @@ const Dashboard = () => {
         hoverBackgroundColor: 'rgba(67, 97, 238, 0.8)',
       },
     ],
+  };
+
+  // Chart options for better responsiveness
+  const barChartOptions = {
+    maintainAspectRatio: false,
+    responsive: true,
+    interaction: {
+      intersect: false,
+      mode: 'index',
+    },
+    layout: {
+      padding: {
+        top: 10,
+        bottom: 10,
+        left: 10,
+        right: 10
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          display: true,
+          color: 'rgba(0, 0, 0, 0.05)'
+        },
+        ticks: {
+          callback: function(value) {
+            return '$' + value.toLocaleString();
+          },
+          font: {
+            size: window.innerWidth < 768 ? 10 : 12
+          }
+        }
+      },
+      x: {
+        grid: {
+          display: false
+        },
+        ticks: {
+          font: {
+            size: window.innerWidth < 768 ? 10 : 12
+          },
+          maxRotation: window.innerWidth < 768 ? 45 : 0
+        }
+      }
+    },
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top',
+        labels: {
+          font: {
+            size: window.innerWidth < 768 ? 11 : 13
+          },
+          padding: 15
+        }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleColor: 'white',
+        bodyColor: 'white',
+        borderColor: 'rgba(67, 97, 238, 1)',
+        borderWidth: 1,
+        cornerRadius: 8,
+        displayColors: false,
+        callbacks: {
+          label: function(context) {
+            return 'Amount: $' + context.parsed.y.toLocaleString();
+          }
+        }
+      }
+    }
   };
 
   // Prepare pie chart data with more attractive colors
@@ -239,6 +311,53 @@ const Dashboard = () => {
         hoverOffset: 15,
       },
     ],
+  };
+
+  // Pie chart options for better responsiveness
+  const pieChartOptions = {
+    maintainAspectRatio: false,
+    responsive: true,
+    interaction: {
+      intersect: false,
+    },
+    layout: {
+      padding: {
+        top: 10,
+        bottom: 10,
+        left: 10,
+        right: 10
+      }
+    },
+    plugins: {
+      legend: {
+        position: window.innerWidth < 768 ? 'bottom' : 'right',
+        display: true,
+        labels: {
+          font: {
+            size: window.innerWidth < 768 ? 10 : 12
+          },
+          padding: window.innerWidth < 768 ? 10 : 15,
+          usePointStyle: true,
+          pointStyle: 'circle'
+        }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleColor: 'white',
+        bodyColor: 'white',
+        borderColor: 'rgba(67, 97, 238, 1)',
+        borderWidth: 1,
+        cornerRadius: 8,
+        displayColors: true,
+        callbacks: {
+          label: function(context) {
+            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const percentage = ((context.parsed / total) * 100).toFixed(1);
+            return context.label + ': $' + context.parsed.toLocaleString() + ' (' + percentage + '%)';
+          }
+        }
+      }
+    }
   };
 
   if (loading) {
@@ -363,33 +482,7 @@ const Dashboard = () => {
             <div className="chart-wrapper">
               <Bar 
                 data={barChartData} 
-                options={{ 
-                  maintainAspectRatio: false,
-                  responsive: true,
-                  layout: {
-                    padding: {
-                      bottom: 10
-                    }
-                  },
-                  scales: {
-                    y: {
-                      beginAtZero: true,
-                      grid: {
-                        display: true
-                      },
-                      ticks: {
-                        callback: function(value) {
-                          return '$' + value;
-                        }
-                      }
-                    },
-                    x: {
-                      grid: {
-                        display: false
-                      }
-                    }
-                  }
-                }} 
+                options={barChartOptions}
               />
             </div>
           </div>
@@ -399,19 +492,7 @@ const Dashboard = () => {
             <div className="chart-wrapper">
               <Pie 
                 data={pieChartData} 
-                options={{ 
-                  maintainAspectRatio: false,
-                  responsive: true,
-                  layout: {
-                    padding: 20
-                  },
-                  plugins: {
-                    legend: {
-                      position: 'right',
-                      display: true
-                    }
-                  }
-                }} 
+                options={pieChartOptions}
               />
             </div>
           </div>

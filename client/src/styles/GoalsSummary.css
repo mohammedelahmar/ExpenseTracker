@@ -432,6 +432,26 @@
 }
 
 /* Responsive Design */
+@media (max-width: 992px) {
+  .goals-summary {
+    margin-bottom: 2.5rem;
+  }
+  
+  .goals-summary .card-header {
+    padding: 22px 28px;
+  }
+  
+  .dashboard-goal {
+    padding: 18px 28px;
+  }
+  
+  .goal-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 19px;
+  }
+}
+
 @media (max-width: 768px) {
   .goals-summary {
     margin-bottom: 2rem;
@@ -447,6 +467,11 @@
   
   .goals-summary .card-header h3 {
     font-size: 1.25rem;
+  }
+  
+  .view-all {
+    font-size: 0.9rem;
+    padding: 6px 14px;
   }
   
   .dashboard-goal {
@@ -468,6 +493,7 @@
     width: 100%;
     flex-direction: row;
     justify-content: space-between;
+    min-width: auto;
   }
   
   .goal-percentage {
@@ -485,17 +511,28 @@
   .no-goals-message {
     padding: 2.5rem 1.5rem;
     margin: 15px;
+    font-size: 1rem;
   }
   
   .loading {
     padding: 2.5rem 1.5rem;
     margin: 15px;
+    font-size: 1rem;
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 576px) {
   .goals-summary .card-header {
     padding: 18px 20px;
+  }
+  
+  .goals-summary .card-header h3 {
+    font-size: 1.15rem;
+  }
+  
+  .view-all {
+    font-size: 0.85rem;
+    padding: 5px 12px;
   }
   
   .dashboard-goal {
@@ -516,7 +553,156 @@
     font-size: 1.1rem;
   }
   
+  .goal-amount {
+    font-size: 0.8rem;
+  }
+  
   .mini-progress {
     height: 6px;
+  }
+  
+  .goals-summary .card-footer {
+    padding: 18px 20px;
+  }
+  
+  .no-goals-message {
+    padding: 2rem 1.25rem;
+    margin: 12px;
+    font-size: 0.95rem;
+  }
+  
+  .loading {
+    padding: 2rem 1.25rem;
+    margin: 12px;
+    font-size: 0.95rem;
+  }
+  
+  .btn-outline-primary,
+  .btn-primary {
+    font-size: 0.85rem;
+    padding: 8px 14px;
+  }
+  
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .goals-summary .card-header {
+    padding: 15px 18px;
+  }
+  
+  .goals-summary .card-header h3 {
+    font-size: 1.1rem;
+  }
+  
+  .dashboard-goal {
+    padding: 12px 18px;
+  }
+  
+  .goal-icon {
+    width: 42px;
+    height: 42px;
+    font-size: 16px;
+  }
+  
+  .goal-info {
+    gap: 12px;
+  }
+  
+  .goal-info h4 {
+    font-size: 0.95rem;
+  }
+  
+  .goal-percentage {
+    font-size: 1rem;
+  }
+  
+  .goal-amount {
+    font-size: 0.75rem;
+  }
+  
+  .mini-progress {
+    height: 5px;
+  }
+  
+  .goals-summary .card-footer {
+    padding: 15px 18px;
+  }
+  
+  .no-goals-message {
+    padding: 1.75rem 1rem;
+    margin: 10px;
+    font-size: 0.9rem;
+  }
+  
+  .no-goals-message::before {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .loading {
+    padding: 1.75rem 1rem;
+    margin: 10px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .goals-summary .card-header {
+    padding: 12px 15px;
+  }
+  
+  .goals-summary .card-header h3 {
+    font-size: 1rem;
+  }
+  
+  .dashboard-goal {
+    padding: 10px 15px;
+  }
+  
+  .goal-icon {
+    width: 38px;
+    height: 38px;
+    font-size: 15px;
+  }
+  
+  .goal-info h4 {
+    font-size: 0.9rem;
+  }
+  
+  .goal-percentage {
+    font-size: 0.95rem;
+  }
+  
+  .goal-amount {
+    font-size: 0.7rem;
+  }
+  
+  .goals-summary .card-footer {
+    padding: 12px 15px;
+  }
+  
+  .btn-outline-primary,
+  .btn-primary {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+  }
+}
+
+/* Landscape orientation fixes for mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .goals-summary {
+    margin-bottom: 1.5rem;
+  }
+  
+  .no-goals-message {
+    padding: 1.5rem 1rem;
+  }
+  
+  .loading {
+    padding: 1.5rem 1rem;
   }
 }
