@@ -29,7 +29,7 @@ const AnomalyDetection = ({ anomalies, loading }) => {
               <div className="anomaly-info">
                 <div className="anomaly-header">
                   <h4>{anomaly.expense.description}</h4>
-                  <span className={`badge ${anomaly.percentageDifference > 0 ? 'high' : 'w'}`}>
+                  <span className={`badge ${anomaly.percentageDifference > 0 ? 'high' : 'low'}`}>
                     {anomaly.percentageDifference > 0 ? 'Above Average' : 'Below Average'}
                   </span>
                 </div>

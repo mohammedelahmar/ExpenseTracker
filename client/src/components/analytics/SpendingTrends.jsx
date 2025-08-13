@@ -90,6 +90,7 @@ const SpendingTrends = ({ trends, loading }) => {
             data={chartData}
             options={{
               responsive: true,
+              maintainAspectRatio: false,
               plugins: {
                 title: {
                   display: true,

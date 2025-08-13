@@ -37,7 +37,7 @@
 }
 
 .goal-list-header h1 {
-  font-size: 32px;
+  font-size: clamp(1.75rem, 4vw, 2rem);
   font-weight: 700;
   color: white;
   margin: 0;
@@ -53,11 +53,13 @@
   padding: 12px 24px;
   border-radius: 25px;
   font-weight: 600;
+  font-size: clamp(0.85rem, 2vw, 1rem);
   text-decoration: none;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   position: relative;
   z-index: 2;
+  white-space: nowrap;
 }
 
 .goal-list-header .btn:hover {
@@ -69,14 +71,14 @@
 
 .goals-overview {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 25px;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: clamp(15px, 3vw, 25px);
   margin-bottom: 40px;
 }
 
 .overview-card {
   background: white;
-  padding: 30px 25px;
+  padding: clamp(20px, 4vw, 30px) clamp(15px, 3vw, 25px);
   border-radius: 16px;
   box-shadow: 0 8px 30px rgba(0,0,0,0.08);
   text-align: center;
@@ -84,6 +86,10 @@
   border: 1px solid rgba(255,255,255,0.8);
   position: relative;
   overflow: hidden;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .overview-card::before {
@@ -107,7 +113,7 @@
 .overview-card:nth-child(4):hover { box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2); }
 
 .overview-value {
-  font-size: 2.5rem;
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
   font-weight: 800;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
@@ -137,7 +143,7 @@
 
 .overview-label {
   color: #64748b;
-  font-size: 0.95rem;
+  font-size: clamp(0.8rem, 2.5vw, 0.95rem);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -145,28 +151,39 @@
 
 .goal-filters {
   display: flex;
-  gap: 15px;
+  gap: clamp(8px, 2vw, 15px);
   margin-bottom: 35px;
-  padding: 8px;
+  padding: clamp(6px, 1.5vw, 8px);
   background: white;
   border-radius: 50px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   width: fit-content;
   margin-left: auto;
   margin-right: auto;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.goal-filters::-webkit-scrollbar {
+  display: none;
 }
 
 .filter-btn {
-  padding: 12px 24px;
+  padding: clamp(8px, 2vw, 12px) clamp(12px, 3vw, 24px);
   background: none;
   border: none;
   border-radius: 25px;
   font-weight: 600;
+  font-size: clamp(0.8rem, 2.2vw, 0.95rem);
   color: #64748b;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
   white-space: nowrap;
+  flex-shrink: 0;
+  min-width: fit-content;
 }
 
 .filter-btn:hover:not(.active) {
@@ -184,8 +201,8 @@
 
 .goal-cards-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  gap: 30px;
+  grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr));
+  gap: clamp(20px, 4vw, 30px);
   margin-top: 30px;
 }
 
@@ -194,27 +211,28 @@
   justify-content: center;
   align-items: center;
   min-height: 400px;
-  padding: 40px;
+  padding: clamp(20px, 5vw, 40px);
 }
 
 .loading-animation-wrapper {
   text-align: center;
   background: white;
-  padding: 40px;
+  padding: clamp(25px, 5vw, 40px);
   border-radius: 20px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+  max-width: 100%;
 }
 
 .loading-text {
   margin-top: 20px;
   color: #64748b;
-  font-size: 1.1rem;
+  font-size: clamp(1rem, 2.5vw, 1.1rem);
   font-weight: 500;
 }
 
 .no-data-message {
   text-align: center;
-  padding: 60px 40px;
+  padding: clamp(40px, 8vw, 60px) clamp(20px, 5vw, 40px);
   background: white;
   border-radius: 20px;
   box-shadow: 0 8px 30px rgba(0,0,0,0.08);
@@ -222,7 +240,7 @@
 }
 
 .no-data-message p {
-  font-size: 1.2rem;
+  font-size: clamp(1rem, 3vw, 1.2rem);
   color: #64748b;
   margin-bottom: 25px;
   line-height: 1.6;
@@ -231,9 +249,10 @@
 .no-data-message .btn {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 14px 28px;
+  padding: clamp(10px, 2.5vw, 14px) clamp(18px, 4vw, 28px);
   border-radius: 25px;
   font-weight: 600;
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
   text-decoration: none;
   display: inline-block;
   transition: all 0.3s ease;
@@ -250,6 +269,7 @@
   border-radius: 12px;
   margin-bottom: 25px;
   font-weight: 500;
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
 }
 
 .alert-danger {
@@ -258,7 +278,7 @@
   border: 1px solid #fca5a5;
 }
 
-/* Responsive Design */
+/* Enhanced Mobile Responsiveness */
 @media (max-width: 768px) {
   .goal-list-container {
     padding: 20px 15px;
@@ -271,56 +291,126 @@
     padding: 25px 20px;
   }
   
-  .goal-list-header h1 {
-    font-size: 28px;
-  }
-  
   .goals-overview {
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 15px;
-  }
-  
-  .overview-card {
-    padding: 20px 15px;
-  }
-  
-  .overview-value {
-    font-size: 2rem;
-  }
-  
-  .goal-filters {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    padding: 6px;
-  }
-  
-  .filter-btn {
-    padding: 10px 18px;
-    font-size: 0.9rem;
-  }
-  
-  .goal-cards-container {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  
-  .no-data-message {
-    padding: 40px 25px;
-  }
-}
-
-@media (max-width: 480px) {
-  .goals-overview {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   }
   
   .goal-filters {
     width: 100%;
+    justify-content: flex-start;
+    padding-left: 10px;
+    padding-right: 10px;
   }
   
   .filter-btn {
-    flex: 1;
-    min-width: 0;
+    min-width: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .goal-list-header {
+    padding: 20px 15px;
+  }
+  
+  .goals-overview {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+  
+  .overview-card {
+    min-height: 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .goal-list-container {
+    padding: 15px 10px;
+  }
+  
+  .goal-list-header {
+    margin-bottom: 25px;
+    border-radius: 15px;
+  }
+  
+  .goal-list-header .btn {
+    padding: 10px 16px;
+  }
+  
+  .goals-overview {
+    margin-bottom: 25px;
+  }
+  
+  .goal-filters {
+    margin-bottom: 25px;
+    border-radius: 30px;
+  }
+  
+  .filter-btn {
+    padding: 8px 12px;
+    border-radius: 20px;
+  }
+  
+  .goal-cards-container {
+    gap: 15px;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 360px) {
+  .goals-overview {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .overview-card {
+    min-height: 90px;
+    padding: 15px 10px;
+  }
+  
+  .goal-filters {
+    gap: 5px;
+    padding: 4px;
+  }
+  
+  .filter-btn {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+}
+
+/* Large screens optimization */
+@media (min-width: 1200px) {
+  .goal-list-container {
+    padding: 50px 30px;
+  }
+  
+  .goal-list-header {
+    padding: 40px;
+    margin-bottom: 50px;
+  }
+  
+  .goals-overview {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+    margin-bottom: 50px;
+  }
+  
+  .goal-cards-container {
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 35px;
+  }
+}
+
+/* Ultra-wide screens */
+@media (min-width: 1600px) {
+  .goals-overview {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 60px;
+  }
+  
+  .goal-cards-container {
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
   }
 }

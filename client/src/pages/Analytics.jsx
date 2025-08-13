@@ -4,6 +4,7 @@ import SpendingTrends from '../components/analytics/SpendingTrends';
 import SpendingForecasts from '../components/analytics/SpendingForecasts';
 import AnomalyDetection from '../components/analytics/AnomalyDetection';
 import Recommendations from '../components/analytics/Recommendations';
+import '../styles/analytics.css';
 
 const Analytics = () => {
   const {

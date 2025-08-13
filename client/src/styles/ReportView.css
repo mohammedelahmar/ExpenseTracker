@@ -236,23 +236,23 @@
 /* Fix chart display */
 .chart-card .card-body {
   padding: 2rem;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
 }
 
 /* Fix table display - Make it more compact */
 .table-card .card-body {
   padding: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .table-responsive {
   flex: 1;
   overflow-x: auto;
-  min-height: 400px;
-  max-height: 500px; /* Limit height to make it more compact */
   width: 100%;
-  overflow-y: auto; /* Allow vertical scrolling if needed */
+  overflow-y: visible; /* Let content expand; rely on page scroll */
+  max-height: none;
+  min-height: 0;
 }
 
 .chart-header, .table-header {
@@ -285,7 +285,7 @@
   font-size: 0.9rem;
   width: 100%;
   table-layout: fixed; /* Fixed layout for better control */
-  min-width: 600px;
+  min-width: 540px; /* Slightly smaller to fit narrow viewports */
   margin-bottom: 0;
 }
 
@@ -465,6 +465,7 @@
   
   .modern-table {
     font-size: 0.85rem;
+    min-width: 480px;
   }
   
   .modern-table thead th,
@@ -518,6 +519,7 @@
   
   .modern-table {
     font-size: 0.8rem;
+    min-width: 360px;
   }
   
   .category-name {
@@ -529,8 +531,8 @@
   }
   
   .table-responsive {
-    min-height: 300px;
-    max-height: 400px;
+    min-height: 0;
+    max-height: none;
   }
 }
 

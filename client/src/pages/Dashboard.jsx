@@ -6,7 +6,7 @@ import { Bar, Pie } from 'react-chartjs-2';
 import Lottie from 'lottie-react';
 import GoalsSummary from '../components/goals/GoalsSummary.jsx';
 import SubscriptionsSummary from '../components/subscriptions/SubscriptionsSummary';
-import '../styles/Dashboard.css'; // Add this import for custom styles
+import '../styles/Dashboard.css';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -83,17 +83,14 @@ const Dashboard = () => {
           endDate: dateRange.endDate
         });
         
-        // Make sure we have valid data structure with explicit checking
         if (monthlyData && Array.isArray(monthlyData.labels) && Array.isArray(monthlyData.data)) {
           setMonthlyChartData(monthlyData);
         } else {
           console.error('Invalid monthly chart data format:', monthlyData);
-          // Set default empty structure with proper types
           setMonthlyChartData({ labels: [], data: [] });
         }
       } catch (monthlyError) {
         console.error('Error fetching monthly chart data:', monthlyError);
-        // Reset to empty data on error
         setMonthlyChartData({ labels: [], data: [] });
       }
 
@@ -104,17 +101,14 @@ const Dashboard = () => {
           endDate: dateRange.endDate
         });
         
-        // Make sure we have valid data structure with explicit checking
         if (categoryData && Array.isArray(categoryData.labels) && Array.isArray(categoryData.data)) {
           setCategoryChartData(categoryData);
         } else {
           console.error('Invalid category chart data format:', categoryData);
-          // Set default empty structure with proper types
           setCategoryChartData({ labels: [], data: [] });
         }
       } catch (categoryError) {
         console.error('Error fetching category chart data:', categoryError);
-        // Reset to empty data on error
         setCategoryChartData({ labels: [], data: [] });
       }
 
@@ -132,30 +126,34 @@ const Dashboard = () => {
     }
   }, [user, fetchDashboardData]);
 
+  // Track viewport size to adjust chart options responsively
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const handleDateChange = (e) => {
     const { name, value } = e.target;
     setDateRange({ ...dateRange, [name]: value });
   };
 
-  // Add this function to handle preset date ranges
   const handlePresetRange = (preset) => {
     const today = new Date();
     let startDate, endDate;
     
     switch(preset) {
       case 'week':
-        // Start of current week (Sunday)
         startDate = new Date(today);
         startDate.setDate(today.getDate() - today.getDay());
         endDate = new Date(today);
         break;
       case 'month':
-        // Start of current month
         startDate = new Date(today.getFullYear(), today.getMonth(), 1);
         endDate = new Date(today);
         break;
       case 'year':
-        // Start of current year
         startDate = new Date(today.getFullYear(), 0, 1);
         endDate = new Date(today);
         break;
@@ -170,7 +168,6 @@ const Dashboard = () => {
     };
     
     setDateRange(newDateRange);
-    // Fetch data with new date range
     setTimeout(() => fetchDashboardData(), 0);
   };
 
@@ -189,7 +186,7 @@ const Dashboard = () => {
     });
   };
 
-  // Prepare bar chart data with responsive options
+  // Prepare bar chart data
   const barChartData = {
     labels: monthlyChartData.labels || [],
     datasets: [
@@ -205,7 +202,7 @@ const Dashboard = () => {
     ],
   };
 
-  // Chart options for better responsiveness
+  // Chart options
   const barChartOptions = {
     maintainAspectRatio: false,
     responsive: true,
@@ -214,38 +211,24 @@ const Dashboard = () => {
       mode: 'index',
     },
     layout: {
-      padding: {
-        top: 10,
-        bottom: 10,
-        left: 10,
-        right: 10
-      }
+      padding: { top: 10, bottom: 10, left: 10, right: 10 }
     },
     scales: {
       y: {
         beginAtZero: true,
-        grid: {
-          display: true,
-          color: 'rgba(0, 0, 0, 0.05)'
-        },
+        grid: { display: true, color: 'rgba(0, 0, 0, 0.05)' },
         ticks: {
           callback: function(value) {
-            return '$' + value.toLocaleString();
+            return '$' + Number(value).toLocaleString();
           },
-          font: {
-            size: window.innerWidth < 768 ? 10 : 12
-          }
+          font: { size: isMobile ? 10 : 12 }
         }
       },
       x: {
-        grid: {
-          display: false
-        },
+        grid: { display: false },
         ticks: {
-          font: {
-            size: window.innerWidth < 768 ? 10 : 12
-          },
-          maxRotation: window.innerWidth < 768 ? 45 : 0
+          font: { size: isMobile ? 10 : 12 },
+          maxRotation: isMobile ? 45 : 0
         }
       }
     },
@@ -254,9 +237,7 @@ const Dashboard = () => {
         display: true,
         position: 'top',
         labels: {
-          font: {
-            size: window.innerWidth < 768 ? 11 : 13
-          },
+          font: { size: isMobile ? 11 : 13 },
           padding: 15
         }
       },
@@ -277,7 +258,7 @@ const Dashboard = () => {
     }
   };
 
-  // Prepare pie chart data with more attractive colors
+  // Prepare pie chart data
   const pieChartData = {
     labels: categoryChartData.labels || [],
     datasets: [
@@ -313,30 +294,19 @@ const Dashboard = () => {
     ],
   };
 
-  // Pie chart options for better responsiveness
+  // Pie chart options
   const pieChartOptions = {
     maintainAspectRatio: false,
     responsive: true,
-    interaction: {
-      intersect: false,
-    },
-    layout: {
-      padding: {
-        top: 10,
-        bottom: 10,
-        left: 10,
-        right: 10
-      }
-    },
+    interaction: { intersect: false },
+    layout: { padding: { top: 10, bottom: 10, left: 10, right: 10 } },
     plugins: {
       legend: {
-        position: window.innerWidth < 768 ? 'bottom' : 'right',
+        position: isMobile ? 'bottom' : 'right',
         display: true,
         labels: {
-          font: {
-            size: window.innerWidth < 768 ? 10 : 12
-          },
-          padding: window.innerWidth < 768 ? 10 : 15,
+          font: { size: isMobile ? 10 : 12 },
+          padding: isMobile ? 10 : 15,
           usePointStyle: true,
           pointStyle: 'circle'
         }
@@ -351,9 +321,11 @@ const Dashboard = () => {
         displayColors: true,
         callbacks: {
           label: function(context) {
-            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-            const percentage = ((context.parsed / total) * 100).toFixed(1);
-            return context.label + ': $' + context.parsed.toLocaleString() + ' (' + percentage + '%)';
+            const dataArr = Array.isArray(context?.dataset?.data) ? context.dataset.data : [];
+            const total = dataArr.reduce((a, b) => a + (Number(b) || 0), 0);
+            const value = Number(context.parsed) || 0;
+            const percentage = total ? ((value / total) * 100).toFixed(1) : '0.0';
+            return `${context.label}: $${value.toLocaleString()} (${percentage}%)`;
           }
         }
       }
@@ -369,12 +341,7 @@ const Dashboard = () => {
             loop={true} 
             style={{ width: 180, height: 180 }}
           />
-          <h2 style={{ 
-            fontSize: '1.5rem', 
-            fontWeight: '600',
-            color: '#4361ee',
-            margin: '1rem 0 0.5rem' 
-          }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#4361ee', margin: '1rem 0 0.5rem' }}>
             Preparing your financial insights
           </h2>
           <p style={{ color: '#586069', fontSize: '1rem' }}>
@@ -476,7 +443,7 @@ const Dashboard = () => {
         </div>
         
         {/* Charts */}
-        <div className="chart-grid">
+        <div className="chart-grid dashboard-charts">
           <div className="chart-container">
             <h3>Monthly Expenses</h3>
             <div className="chart-wrapper">
@@ -498,10 +465,9 @@ const Dashboard = () => {
           </div>
         </div>
         
-        {/* Add clear separator to ensure proper spacing */}
         <div style={{ clear: 'both', margin: '3rem 0' }}></div>
         
-        {/* Financial Goals Section with dedicated class */}
+        {/* Financial Goals Section */}
         <div className="dashboard-section financial-goals-section">
           <h3 className="section-title">Financial Goals</h3>
           <GoalsSummary />

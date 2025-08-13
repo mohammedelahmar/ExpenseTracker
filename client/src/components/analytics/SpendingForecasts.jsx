@@ -65,6 +65,7 @@ const SpendingForecasts = ({ forecasts, loading }) => {
           data={chartData}
           options={{
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
               legend: {
                 position: 'top',
@@ -119,9 +120,11 @@ const SpendingForecasts = ({ forecasts, loading }) => {
           <tbody>
             {topCategories.map((category, index) => (
               <tr key={index}>
-                <td>{category}</td>
+                <td data-label="Category">{category}</td>
                 {forecasts.map((forecast, i) => (
-                  <td key={i} className={forecast.categories[category] > 100 ? "high-amount" : ""}>
+                  <td key={i} 
+                      data-label={forecast.displayMonth}
+                      className={forecast.categories[category] > 100 ? "high-amount" : ""}>
                     {new Intl.NumberFormat('en-US', { 
                       style: 'currency', 
                       currency: 'USD',
@@ -133,9 +136,9 @@ const SpendingForecasts = ({ forecasts, loading }) => {
               </tr>
             ))}
             <tr className="total-row">
-              <td><strong>Total</strong></td>
+              <td data-label="Category"><strong>Total</strong></td>
               {forecasts.map((forecast, i) => (
-                <td key={i}><strong>
+                <td key={i} data-label={forecast.displayMonth}><strong>
                   {new Intl.NumberFormat('en-US', { 
                     style: 'currency', 
                     currency: 'USD',

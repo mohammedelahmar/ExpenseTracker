@@ -6,6 +6,8 @@ import '../styles/ExpenseList.css';
 import Lottie from 'lottie-react';
 import dashboardLoadingAnimation from '../assets/dashboard-loading.json';
 
+const LOCAL_PLACEHOLDER = require('../assets/receipt-placeholder.png'); // Add a local placeholder image to assets
+
 const ExpenseList = () => {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -198,27 +200,27 @@ const ExpenseList = () => {
     if (!receipt) {
       return <span className="no-receipt">No receipt</span>;
     }
-    
-    const receiptUrl = receipt.startsWith('http') 
-      ? receipt 
+
+    const receiptUrl = receipt.startsWith('http')
+      ? receipt
       : `http://localhost:5000/${receipt}`;
-    
+
     return (
       <button
         className="receipt-link"
-        onClick={() => setViewReceipt({ 
-          show: true, 
+        onClick={() => setViewReceipt({
+          show: true,
           url: receiptUrl,
           description: description
         })}
       >
-        <img 
-          src={receiptUrl} 
-          alt="Receipt" 
-          className="receipt-thumbnail" 
+        <img
+          src={receiptUrl}
+          alt="Receipt"
+          className="receipt-thumbnail"
           onError={(e) => {
             e.target.onerror = null;
-            e.target.src = "https://via.placeholder.com/50?text=Error";
+            e.target.src = LOCAL_PLACEHOLDER; // Use local fallback image
           }}
         />
         <span>View</span>
