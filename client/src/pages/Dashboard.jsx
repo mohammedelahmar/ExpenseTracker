@@ -168,7 +168,7 @@ const Dashboard = () => {
     };
     
     setDateRange(newDateRange);
-    setTimeout(() => fetchDashboardData(), 0);
+    fetchDashboardData();
   };
 
   const formatCurrency = (amount) => {

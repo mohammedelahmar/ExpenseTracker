@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import api from '../utils/api';
 import { useAuth } from './AuthContext';
 
@@ -20,28 +20,26 @@ export const AnalyticsProvider = ({ children }) => {
   });
   const [error, setError] = useState(null);
 
-  const fetchTrends = async (period = 'month', limit = 6) => {
+  const fetchTrends = useCallback(async (period = 'month', limit = 6, extraParams = {}) => {
     setLoading(prev => ({ ...prev, trends: true }));
     try {
-      const response = await api.get(
-        `/analytics/trends?period=${period}&limit=${limit}`
-      );
+      const params = new URLSearchParams({ period, limit, ...extraParams });
+      const response = await api.get(`/analytics/trends?${params.toString()}`);
       setTrends(response.data.data);
       return response.data.data;
     } catch (err) {
       console.error('Error fetching trends:', err.response?.status, err.response?.data);
       setError(err.response?.data?.message || 'Failed to fetch spending trends');
+      throw err;
     } finally {
       setLoading(prev => ({ ...prev, trends: false }));
     }
-  };
+  }, []);
 
-  const fetchForecasts = async (months = 3) => {
+  const fetchForecasts = useCallback(async (months = 3) => {
     setLoading(prev => ({ ...prev, forecasts: true }));
     try {
-      const response = await api.get(
-        `/analytics/forecasts?months=${months}`
-      );
+      const response = await api.get(`/analytics/forecasts?months=${months}`);
       setForecasts(response.data.data);
       return response.data.data;
     } catch (err) {
@@ -50,14 +48,12 @@ export const AnalyticsProvider = ({ children }) => {
     } finally {
       setLoading(prev => ({ ...prev, forecasts: false }));
     }
-  };
+  }, []);
 
-  const fetchAnomalies = async () => {
+  const fetchAnomalies = useCallback(async () => {
     setLoading(prev => ({ ...prev, anomalies: true }));
     try {
-      const response = await api.get(
-        `/analytics/anomalies`
-      );
+      const response = await api.get(`/analytics/anomalies`);
       setAnomalies(response.data.data);
       return response.data.data;
     } catch (err) {
@@ -66,14 +62,12 @@ export const AnalyticsProvider = ({ children }) => {
     } finally {
       setLoading(prev => ({ ...prev, anomalies: false }));
     }
-  };
+  }, []);
 
-  const fetchRecommendations = async () => {
+  const fetchRecommendations = useCallback(async () => {
     setLoading(prev => ({ ...prev, recommendations: true }));
     try {
-      const response = await api.get(
-        `/analytics/recommendations`
-      );
+      const response = await api.get(`/analytics/recommendations`);
       setRecommendations(response.data.data);
       return response.data.data;
     } catch (err) {
@@ -82,35 +76,31 @@ export const AnalyticsProvider = ({ children }) => {
     } finally {
       setLoading(prev => ({ ...prev, recommendations: false }));
     }
-  };
+  }, []);
 
-  const fetchAllAnalytics = async () => {
-    await Promise.all([
-      fetchTrends(),
-      fetchForecasts(),
-      fetchAnomalies(),
-      fetchRecommendations()
-    ]);
-  };
-
-  const testAuth = async () => {
+  const fetchAllAnalytics = useCallback(async () => {
+    setError(null);
+    setLoading(prev => ({ ...prev, trends: true, forecasts: true, anomalies: true, recommendations: true }));
     try {
-      console.log("Current token:", token ? token.substring(0, 15) + "..." : "No token");
-      const testResponse = await api.get(`/analytics/test`);
-      console.log("Test route response:", testResponse.data);
-      
-      // Try a protected route with explicit token
-      const authResponse = await api.get(`/analytics/trends`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      console.log("Protected route response:", authResponse.data);
-      
-      return "Auth test complete - check console";
+      await Promise.all([
+        fetchTrends('month', 6),
+        fetchForecasts(3),
+        fetchAnomalies(),
+        fetchRecommendations()
+      ]);
+    } finally {
+      setLoading(prev => ({ ...prev, trends: false, forecasts: false, anomalies: false, recommendations: false }));
+    }
+  }, [fetchTrends, fetchForecasts, fetchAnomalies, fetchRecommendations]);
+
+  const testAuth = useCallback(async () => {
+    try {
+      const res = await api.get('/users/profile');
+      return `Auth OK: ${res.data?.email || 'profile loaded'}`;
     } catch (err) {
-      console.error("Auth test failed:", err.response?.status, err.response?.data);
       return `Auth test failed: ${err.response?.status} ${err.response?.data?.message || err.message}`;
     }
-  };
+  }, []);
 
   return (
     <AnalyticsContext.Provider

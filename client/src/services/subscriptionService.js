@@ -32,6 +32,18 @@ const getUpcomingPayments = async (days = 30) => {
   }
 };
 
+// Get a subscription by ID
+const getSubscriptionById = async (id) => {
+  try {
+    configureRequest();
+    const response = await axios.get(`${API_URL}/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching subscription by id:', error);
+    throw error.response?.data || { message: 'Failed to fetch subscription' };
+  }
+};
+
 // Add a new subscription
 const addSubscription = async (subscriptionData) => {
   try {
@@ -79,6 +91,7 @@ const recordPayment = async (id) => {
 export default {
   fetchSubscriptions,
   getUpcomingPayments,
+  getSubscriptionById,
   addSubscription,
   updateSubscription,
   deleteSubscription,

@@ -131,32 +131,36 @@ const getChartData = async (period, customFilters = {}) => {
   try {
     configureRequest();
     const { startDate, endDate, ...additionalFilters } = customFilters;
-    
+
     let endpoint;
     let params = { ...additionalFilters };
-    
-    // Map period to appropriate report endpoint
-    if (period === 'monthly') {
-      endpoint = 'http://localhost:5000/api/reports/monthly';
-      // For monthly chart, we need year parameter
-      const year = startDate ? new Date(startDate).getFullYear() : new Date().getFullYear();
-      params = { ...params, year };
-    } else if (period === 'category') {
-      endpoint = 'http://localhost:5000/api/reports/by-category';
+
+    if (period === 'monthly' || period === 'category') {
+      // Use expenses/chart endpoint which supports startDate/endDate filtering
+      endpoint = '/api/expenses/chart';
+      params = {
+        ...params,
+        period: period, // 'monthly' | 'category'
+      };
       if (startDate) params.startDate = startDate;
       if (endDate) params.endDate = endDate;
     } else if (period === 'trends') {
+      // Keep existing behavior for trends, if used elsewhere
       endpoint = 'http://localhost:5000/api/reports/trends';
     } else {
       throw new Error('Invalid chart period specified');
     }
-    
+
     const queryParams = new URLSearchParams(params);
     const response = await axios.get(`${endpoint}?${queryParams.toString()}`);
-    
-    // Transform data to format expected by charts
+
+    // Prefer server-provided labels/data (from /api/expenses/chart)
+    if (response?.data?.labels && response?.data?.data) {
+      return response.data;
+    }
+
+    // Fallback transformation for legacy report endpoints
     if (period === 'monthly') {
-      // Monthly data needs to be transformed to labels and data arrays
       return {
         labels: response.data.map(item => {
           const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -165,13 +169,12 @@ const getChartData = async (period, customFilters = {}) => {
         data: response.data.map(item => item.total)
       };
     } else if (period === 'category') {
-      // Category data needs to be transformed to labels and data arrays
       return {
         labels: response.data.map(item => item._id || 'Uncategorized'),
         data: response.data.map(item => item.total)
       };
     }
-    
+
     return response.data;
   } catch (error) {
     console.error('Chart data fetch error:', error);
