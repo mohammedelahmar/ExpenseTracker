@@ -58,7 +58,7 @@ jobs:
       - name: Build client
         working-directory: client
         env:
-          REACT_APP_API_URL: http://localhost:5000
+          REACT_APP_API_URL: http://localhost:5000/api
         run: npm run build
 
       - name: Start server
