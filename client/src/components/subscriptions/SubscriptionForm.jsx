@@ -40,7 +40,6 @@ const SubscriptionForm = () => {
           setLoading(false);
         } catch (err) {
           setError('Failed to load subscription details');
-          console.error(err);
           setLoading(false);
         }
       }

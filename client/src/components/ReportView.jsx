@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Form, Button, Card, Spinner, Alert } from 'react-bootstrap';
-import axios from 'axios';
+import api from '../services/api';
 import { Bar, Pie, Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -41,15 +41,11 @@ const ReportView = () => {
   });
   const [year, setYear] = useState(new Date().getFullYear());
 
-  useEffect(() => {
-    fetchReportData();
-  }, [id]);
-
-  const fetchReportData = async () => {
+  const fetchReportData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      let url = `/api/reports/${id}`;
+      let url = `/reports/${id}`;
       let params = {};
       
       if (id === 'by-category' && dateRange.startDate && dateRange.endDate) {
@@ -58,15 +54,18 @@ const ReportView = () => {
         params = { year };
       }
       
-      const response = await axios.get(url, { params });
+      const response = await api.get(url, { params });
       setData(response.data);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch report data');
-      console.error('Error fetching report:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, dateRange.startDate, dateRange.endDate, year]);
+
+  useEffect(() => {
+    fetchReportData();
+  }, [fetchReportData]);
 
   const handleFilter = (e) => {
     e.preventDefault();

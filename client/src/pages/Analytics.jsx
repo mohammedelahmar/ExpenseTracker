@@ -20,7 +20,7 @@ const Analytics = () => {
 
   useEffect(() => {
     fetchAllAnalytics();
-  }, []);
+  }, [fetchAllAnalytics]);
 
   const tabs = [
     { id: 'trends', label: 'Spending Trends', icon: '📈' },

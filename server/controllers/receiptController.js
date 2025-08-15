@@ -4,6 +4,7 @@ import fs from 'fs/promises';
 import { createWorker } from 'tesseract.js';
 import sharp from 'sharp';
 import asyncHandler from 'express-async-handler';
+import logger from '../utils/logger.js';
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
@@ -280,7 +281,7 @@ async function preprocessImageVariants(filePath) {
       await buildAndSaveSharp(filePath, outPath, v.opts);
       outputs.push(outPath);
     } catch (e) {
-      console.error('Preprocess variant failed:', v.key, e);
+      logger.error('Preprocess variant failed:', v.key, e);
     }
   }
   // Fallback to original path if all preprocessing failed
@@ -294,8 +295,8 @@ async function getOcrWorker() {
   if (!ocrWorkerPromise) {
     ocrWorkerPromise = (async () => {
       const worker = await createWorker('eng', 1, {
-        logger: m => console.debug('Tesseract:', m.status || m),
-        errorHandler: err => console.error('Tesseract error:', err)
+  logger: m => logger.debug('Tesseract:', m.status || m),
+  errorHandler: err => logger.error('Tesseract error:', err)
       });
       await worker.setParameters({
         // Use a wider currency-enabled whitelist; keep spaces
@@ -358,22 +359,22 @@ export const processReceipt = asyncHandler(async (req, res) => {
         req.file.filename = newFilename;
         req.file.path = newPath;
       } catch (e) {
-        console.error('Failed to normalize file extension:', e);
+  logger.error('Failed to normalize file extension:', e);
       }
     }
     const isPdf = actualMime === 'application/pdf';
     if (isPdf) {
       // SECURITY: Perform malware scan on PDF
       const pdfBuffer = await fs.readFile(req.file.path);
-      console.log('Performing PDF security scan...');
+      
       const securityScan = await PDFSecurityScanner.scanPDFForMalware(req.file.path, pdfBuffer);
       
       // Log security scan results
       if (securityScan.threats.length > 0) {
-        console.error('PDF security threats detected:', securityScan.threats);
+  logger.error('PDF security threats detected:', securityScan.threats);
       }
       if (securityScan.warnings.length > 0) {
-        console.warn('PDF security warnings:', securityScan.warnings);
+  logger.warn('PDF security warnings:', securityScan.warnings);
       }
 
       // Block processing if threats detected
@@ -382,7 +383,7 @@ export const processReceipt = asyncHandler(async (req, res) => {
         try {
           await fs.unlink(req.file.path);
         } catch (cleanupError) {
-          console.error('Failed to clean up unsafe PDF:', cleanupError);
+          logger.error('Failed to clean up unsafe PDF:', cleanupError);
         }
 
         return res.status(400).json({
@@ -460,7 +461,7 @@ export const processReceipt = asyncHandler(async (req, res) => {
       }
     }
 
-    console.log('Selected OCR variant:', best.path, 'score:', best.score, 'confidence:', best.confidence);
+    
 
     // Return the extracted data
     res.status(200).json({
@@ -477,7 +478,7 @@ export const processReceipt = asyncHandler(async (req, res) => {
     });
 
   } catch (error) {
-    console.error('OCR processing error:', error);
+  logger.error('OCR processing error:', error);
     res.status(500).json({ 
       success: false, 
       error: error.message || 'Failed to process receipt' 
@@ -611,7 +612,7 @@ function extractDate(text, lines) {
           try {
             return format(match);
           } catch (e) {
-            console.error('Date parsing error:', e);
+            logger.error('Date parsing error:', e);
           }
         }
       }
@@ -625,7 +626,7 @@ function extractDate(text, lines) {
       try {
         return format(match);
       } catch (e) {
-        console.error('Date parsing error:', e);
+  logger.error('Date parsing error:', e);
       }
     }
   }
@@ -638,7 +639,7 @@ function extractDate(text, lines) {
         try {
           return format(match);
         } catch (e) {
-          console.error('Date parsing error:', e);
+          logger.error('Date parsing error:', e);
         }
       }
     }

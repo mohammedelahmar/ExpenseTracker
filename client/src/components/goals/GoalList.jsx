@@ -21,7 +21,6 @@ const GoalList = () => {
         setError('');
       } catch (err) {
         setError('Failed to load goals. Please try again.');
-        console.error(err);
       } finally {
         setLoading(false);
       }

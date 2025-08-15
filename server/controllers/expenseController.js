@@ -197,28 +197,21 @@ const deleteExpense = asyncHandler(async(req, res) => {
 // @access Private
 const getExpenseById = asyncHandler(async (req, res) => {
   try {
-    console.log(`Getting expense with ID: ${req.params.id}`);
-    console.log(`User ID: ${req.user._id}`);
-
     const expense = await Expense.findById(req.params.id);
     
     if (!expense) {
-      console.log('Expense not found');
       res.status(404);
       throw new Error('Expense not found');
     }
     
     // Check if expense belongs to logged in user
     if (expense.user.toString() !== req.user._id.toString()) {
-      console.log('User not authorized to access this expense');
       res.status(401);
       throw new Error('Not authorized to access this expense');
     }
-    
-    console.log('Expense found:', expense);
     res.json(expense);
   } catch (error) {
-    console.error('Error in getExpenseById:', error);
+    
     if (error.kind === 'ObjectId') {
       res.status(400);
       throw new Error('Invalid ID format');

@@ -1,9 +1,7 @@
-import axios from 'axios';
+import api from './api';
 
-// Replace the hardcoded URL with environment variable
-const API_URL = process.env.REACT_APP_API_URL ? 
-  `${process.env.REACT_APP_API_URL}/users` : 
-  '/api/users';
+// Use axios baseURL '/api' and relative endpoints here
+const BASE = '/users';
 
 // Store the token in localStorage
 const setToken = (token) => {
@@ -19,16 +17,16 @@ const getToken = () => {
 const configureAxiosHeader = () => {
   const token = getToken();
   if (token) {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   } else {
-    delete axios.defaults.headers.common['Authorization'];
+    delete api.defaults.headers.common['Authorization'];
   }
 };
 
 // Login user
 const login = async (email, password) => {
   try {
-    const response = await axios.post(`${API_URL}/login`, { email, password });
+  const response = await api.post(`${BASE}/login`, { email, password });
     if (response.data.token) {
       setToken(response.data.token);
       configureAxiosHeader();
@@ -43,14 +41,13 @@ const login = async (email, password) => {
 const signup = async (userData) => {
   try {
     // Changed from /signup to /register to match your backend route
-    const response = await axios.post(`${API_URL}/register`, userData);
+  const response = await api.post(`${BASE}/register`, userData);
     if (response.data.token) {
       setToken(response.data.token);
       configureAxiosHeader();
     }
     return response.data;
   } catch (error) {
-    console.error('Signup error details:', error);
     throw error.response?.data || { message: 'Signup failed' };
   }
 };
@@ -58,7 +55,7 @@ const signup = async (userData) => {
 // Logout user
 const logout = () => {
   localStorage.removeItem('token');
-  delete axios.defaults.headers.common['Authorization'];
+  delete api.defaults.headers.common['Authorization'];
 };
 
 // Check if user is authenticated
@@ -72,7 +69,7 @@ const getCurrentUser = async () => {
   
   try {
     configureAxiosHeader();
-    const response = await axios.get(`${API_URL}/me`);
+  const response = await api.get(`${BASE}/me`);
     return response.data;
   } catch (error) {
     logout();
@@ -83,9 +80,7 @@ const getCurrentUser = async () => {
 // Google login
 const googleLogin = async (credential) => {
   try {
-    console.log('Google login initiated with credential', credential ? 'present' : 'missing');
-    
-    const response = await axios.post(`${API_URL}/google-login`, 
+  const response = await api.post(`${BASE}/google-login`, 
       { token: credential },
       { withCredentials: true }
     );
@@ -98,7 +93,6 @@ const googleLogin = async (credential) => {
       throw new Error('No token received from server');
     }
   } catch (error) {
-    console.error('Google login error details:', error);
     throw error.response?.data || { message: `Google login failed: ${error.message}` };
   }
 };
@@ -106,7 +100,7 @@ const googleLogin = async (credential) => {
 // Google signup
 const googleSignup = async (credential) => {
   try {
-    const response = await axios.post(`${API_URL}/google-signup`, { token: credential });
+  const response = await api.post(`${BASE}/google-signup`, { token: credential });
     if (response.data.token) {
       setToken(response.data.token);
       configureAxiosHeader();
@@ -120,7 +114,7 @@ const googleSignup = async (credential) => {
 // Request password reset
 const forgotPassword = async (email) => {
   try {
-    const response = await axios.post(`${API_URL}/forgot-password`, { email });
+  const response = await api.post(`${BASE}/forgot-password`, { email });
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to request password reset' };
@@ -130,7 +124,7 @@ const forgotPassword = async (email) => {
 // Reset password with token
 const resetPassword = async (token, password) => {
   try {
-    const response = await axios.put(`${API_URL}/reset-password/${token}`, { password });
+  const response = await api.put(`${BASE}/reset-password/${token}`, { password });
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to reset password' };

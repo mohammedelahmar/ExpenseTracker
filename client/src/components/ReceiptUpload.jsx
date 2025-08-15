@@ -4,7 +4,6 @@ import { Button, Box, Typography, CircularProgress, Alert, Card, CardContent, Gr
 import CloseIcon from '@mui/icons-material/Close';
 import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
 import UploadIcon from '@mui/icons-material/Upload';
-import CheckIcon from '@mui/icons-material/Check';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import receiptService from '../services/receiptService';
 
@@ -41,8 +40,7 @@ const ReceiptUpload = ({ onProcessed, onError }) => {
         receipt: result.receiptUrl // server returns a sanitized relative URL
       });
       
-    } catch (err) {
-      console.error('Receipt upload failed:', err);
+  } catch (err) {
       setError('Failed to process receipt. Please try again or enter details manually.');
       onError && onError(err);
     } finally {
@@ -86,8 +84,7 @@ const ReceiptUpload = ({ onProcessed, onError }) => {
           receipt: result.receiptUrl // sanitized relative URL from server
         });
         
-      } catch (err) {
-        console.error('Receipt processing failed:', err);
+  } catch (err) {
         setError('Failed to process receipt. Please try again or enter details manually.');
         onError && onError(err);
       } finally {

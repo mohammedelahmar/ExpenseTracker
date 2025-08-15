@@ -16,9 +16,13 @@ const connectDB = async ()=>{
                useNewUrlParser: true,
                useUnifiedTopology: true,
           })
-          console.log('MongoDB connected successfully');
+          if (process.env.NODE_ENV !== 'production') {
+               // eslint-disable-next-line no-console
+               console.log('MongoDB connected');
+          }
      }catch(error){
-          console.log('MongoDB connection failed',error.message);
+          // eslint-disable-next-line no-console
+          console.error('MongoDB connection failed', error.message);
           process.exit(1); 
      }
 };

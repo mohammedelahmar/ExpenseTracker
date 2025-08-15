@@ -11,8 +11,8 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      {/* Ensure the client ID matches exactly what's in Google Cloud Console */}
-      <GoogleOAuthProvider clientId="777108414774-se1rqrsg8rdosj7i6jdgkj50gtrsetg8.apps.googleusercontent.com">
+  {/* Use env var for Google OAuth client ID */}
+  <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
         <AuthProvider>
           <App />
         </AuthProvider>

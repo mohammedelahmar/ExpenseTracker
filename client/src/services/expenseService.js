@@ -1,8 +1,8 @@
-import axios from 'axios';
 import authService from './authService';
+import api from './api';
 
 // Use the same base URL format as your other components
-const API_URL = '/api/expenses';
+const BASE = '/expenses';
 
 // Configure axios with auth token before each request
 const configureRequest = () => {
@@ -21,11 +21,10 @@ const fetchExpenses = async (params = {}) => {
     });
     
     const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
-    const response = await axios.get(`${API_URL}${queryString}`);
+  const response = await api.get(`${BASE}${queryString}`);
     
     return response.data;
   } catch (error) {
-    console.error('Error fetching expenses:', error);
     throw error.response?.data || { message: 'Failed to fetch expenses' };
   }
 };
@@ -34,7 +33,7 @@ const fetchExpenses = async (params = {}) => {
 const addExpense = async (expenseData) => {
   try {
     configureRequest();
-    const response = await axios.post(API_URL, expenseData);
+  const response = await api.post(BASE, expenseData);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to add expense' };
@@ -45,7 +44,7 @@ const addExpense = async (expenseData) => {
 const updateExpense = async (id, expenseData) => {
   try {
     configureRequest();
-    const response = await axios.put(`${API_URL}/${id}`, expenseData);
+  const response = await api.put(`${BASE}/${id}`, expenseData);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to update expense' };
@@ -56,7 +55,7 @@ const updateExpense = async (id, expenseData) => {
 const deleteExpense = async (id) => {
   try {
     configureRequest();
-    const response = await axios.delete(`${API_URL}/${id}`);
+  const response = await api.delete(`${BASE}/${id}`);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to delete expense' };
@@ -68,39 +67,18 @@ const getExpenseById = async (id) => {
   try {
     // Get the token directly from localStorage for this critical request
     const token = localStorage.getItem('token');
-    
-    if (!token) {
-      throw new Error('Authentication token not found');
-    }
-    
-    console.log(`Fetching expense with ID: ${id} with token: ${token.substring(0, 10)}...`);
-    
-    // Using absolute URL instead of relative URL
-    const response = await axios.get(`http://localhost:5000/api/expenses/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-    
-    console.log('API response:', response);
+    if (!token) throw new Error('Authentication token not found');
+    const response = await api.get(`/expenses/${id}`);
     return response.data;
   } catch (error) {
-    console.error('Full error object:', error);
     
     if (error.response) {
       // The request was made and the server responded with a status code
       // that falls out of the range of 2xx
-      console.error('Error response data:', error.response.data);
-      console.error('Error response status:', error.response.status);
-      console.error('Error response headers:', error.response.headers);
       return Promise.reject(error.response.data || { message: `Server error: ${error.response.status}` });
     } else if (error.request) {
-      // The request was made but no response was received
-      console.error('Error request:', error.request);
       return Promise.reject({ message: 'No response from server. Check your network connection.' });
     } else {
-      // Something happened in setting up the request that triggered an Error
-      console.error('Error message:', error.message);
       return Promise.reject({ message: error.message || 'Unknown error occurred' });
     }
   }
@@ -118,7 +96,7 @@ const getExpenseStats = async (params = {}) => {
     });
     
     const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
-    const response = await axios.get(`${API_URL}/stats${queryString}`);
+  const response = await api.get(`${BASE}/stats${queryString}`);
     
     return response.data;
   } catch (error) {
@@ -137,7 +115,7 @@ const getChartData = async (period, customFilters = {}) => {
 
     if (period === 'monthly' || period === 'category') {
       // Use expenses/chart endpoint which supports startDate/endDate filtering
-      endpoint = '/api/expenses/chart';
+  endpoint = '/expenses/chart';
       params = {
         ...params,
         period: period, // 'monthly' | 'category'
@@ -146,13 +124,13 @@ const getChartData = async (period, customFilters = {}) => {
       if (endDate) params.endDate = endDate;
     } else if (period === 'trends') {
       // Keep existing behavior for trends, if used elsewhere
-      endpoint = 'http://localhost:5000/api/reports/trends';
+  endpoint = '/reports/trends';
     } else {
       throw new Error('Invalid chart period specified');
     }
 
     const queryParams = new URLSearchParams(params);
-    const response = await axios.get(`${endpoint}?${queryParams.toString()}`);
+  const response = await api.get(`${endpoint}?${queryParams.toString()}`);
 
     // Prefer server-provided labels/data (from /api/expenses/chart)
     if (response?.data?.labels && response?.data?.data) {
@@ -177,12 +155,12 @@ const getChartData = async (period, customFilters = {}) => {
 
     return response.data;
   } catch (error) {
-    console.error('Chart data fetch error:', error);
+    
     throw error.response?.data || { message: 'Failed to fetch chart data' };
   }
 };
 
-export default {
+const service = {
   fetchExpenses,
   addExpense,
   updateExpense,
@@ -191,3 +169,5 @@ export default {
   getExpenseStats,
   getChartData
 };
+
+export default service;

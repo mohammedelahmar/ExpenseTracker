@@ -15,8 +15,7 @@ const Navbar = () => {
   
   const [isOpen, setIsOpen] = useState(false); // mobile drawer
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isHidden, setIsHidden] = useState(false);
+  // Removed unused isScrolled/isHidden state
   
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -24,8 +23,7 @@ const Navbar = () => {
   
   const userMenuRef = useRef(null);
   const sidebarRef = useRef(null);
-  const lastScrollY = useRef(0);
-  const scrollTimeoutRef = useRef(null);
+  //
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const touchMoved = useRef(false);
@@ -88,36 +86,11 @@ const Navbar = () => {
       localStorage.setItem('sidebarCollapsed', JSON.stringify(collapsed));
       document.body.classList.toggle('sidebar-collapsed', collapsed);
     } catch (error) {
-      console.warn('Failed to save sidebar state:', error);
+            // ignore storage errors
     }
   }, [collapsed]);
 
-  // Enhanced scroll handling with better performance
-  useEffect(() => {
-    let ticking = false;
-    
-    const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          const currentScrollY = window.scrollY;
-          const scrollDifference = Math.abs(currentScrollY - lastScrollY.current);
-          
-          // Only update if scroll difference is significant (reduces jitter)
-          if (scrollDifference > 5) {
-            setIsScrolled(currentScrollY > 20);
-            setIsHidden(currentScrollY > lastScrollY.current && currentScrollY > 100);
-            lastScrollY.current = currentScrollY;
-          }
-          
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  // Removed unused scroll-hide behavior to prevent extra reflows
 
   // Close menus on route change
   useEffect(() => {
@@ -232,7 +205,10 @@ const Navbar = () => {
       navigate('/login');
       setUserMenuOpen(false);
     } catch (error) {
-      console.error('Logout failed:', error);
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.error('Logout failed:', error);
+      }
     }
   };
 
@@ -300,7 +276,7 @@ const Navbar = () => {
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             onClick={toggleSidebar}
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            style={{ display: window.innerWidth < 992 ? 'none' : 'flex' }}
+            style={{ display: typeof window !== 'undefined' && window.innerWidth < 992 ? 'none' : 'flex' }}
           >
             <i className={`fas ${collapsed ? 'fa-chevron-right' : 'fa-chevron-left'}`}></i>
           </button>

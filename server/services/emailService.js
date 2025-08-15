@@ -12,13 +12,10 @@ dotenv.config();
  * @param {string} options.html - HTML content
  */
 export const sendEmail = async (options) => {
-  console.log('Attempting to send email to:', options.to);
-  
   try {
     // Check if email credentials are set
     // This is a good place to check if the environment variables are set
     if (!process.env.EMAIL_USERNAME || !process.env.EMAIL_PASSWORD) {
-      console.error('Missing email configuration. Check .env file for EMAIL_* variables');
       throw new Error('Email configuration missing');
     }
     
@@ -39,8 +36,6 @@ export const sendEmail = async (options) => {
       }
     });
     
-    console.log('Email transporter created with credentials for:', process.env.EMAIL_USERNAME);
-    
     // Email content
     const mailOptions = {
       from: `"${process.env.FROM_NAME}" <${process.env.FROM_EMAIL}>`,
@@ -51,11 +46,9 @@ export const sendEmail = async (options) => {
     };
     
     // Send email
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully:', info.messageId);
+  const info = await transporter.sendMail(mailOptions);
     return info;
   } catch (error) {
-    console.error('Error sending email (DETAILED):', error);
     throw new Error(`Failed to send email: ${error.message}`);
   }
 };

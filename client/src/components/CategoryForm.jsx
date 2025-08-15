@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api';
 import { toast } from 'react-toastify';
 import '../styles/CategoryForm.css';
 
@@ -33,28 +33,17 @@ const CategoryForm = () => {
 
   useEffect(() => {
     // If ID exists, we're in edit mode
-    if (id) {
-      setIsEdit(true);
-      fetchCategory();
-    }
+    if (!id) return;
+    setIsEdit(true);
+    (async () => {
+      try {
+        const { data } = await api.get(`/categories/${id}`);
+        setFormData({ name: data.name, color: data.color, icon: data.icon });
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Failed to fetch category');
+      }
+    })();
   }, [id]);
-
-  const fetchCategory = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const { data } = await axios.get(`/api/categories/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setFormData({
-        name: data.name,
-        color: data.color,
-        icon: data.icon
-      });
-    } catch (error) {
-      console.error('Error fetching category:', error);
-      toast.error(error.response?.data?.message || 'Failed to fetch category');
-    }
-  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -72,19 +61,13 @@ const CategoryForm = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      
       if (isEdit) {
         // Update existing category
-        await axios.put(`/api/categories/${id}`, formData, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+  await api.put(`/categories/${id}`, formData);
         toast.success('Category updated successfully');
       } else {
         // Create new category
-        await axios.post('/api/categories', formData, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+  await api.post('/categories', formData);
         toast.success('Category created successfully');
       }
       navigate('/categories');

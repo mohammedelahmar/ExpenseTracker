@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import bankIntegrationService from "../services/bankIntegrationService.js";
 import BankAccount from "../models/BankAccount.js";
+import logger from "../utils/logger.js";
 
 // @desc   Create a link token for Plaid Link
 // @route  POST /api/bank/create-link-token
@@ -8,7 +9,7 @@ import BankAccount from "../models/BankAccount.js";
 export const createLinkToken = asyncHandler(async (req, res) => {
   try {
     // Add debug logging
-    console.log('User ID:', req.user?._id);
+    
     
     if (!req.user || !req.user._id) {
       res.status(401);
@@ -19,7 +20,7 @@ export const createLinkToken = asyncHandler(async (req, res) => {
     const linkToken = await bankIntegrationService.createLinkToken(userId);
     res.json(linkToken);
   } catch (error) {
-    console.error('Error in createLinkToken:', error);
+    logger.error('Error in createLinkToken:', error);
     res.status(500);
     throw new Error('Failed to create link token');
   }
@@ -43,7 +44,7 @@ export const exchangeToken = asyncHandler(async (req, res) => {
       accounts
     });
   } catch (error) {
-    console.error('Error in exchangeToken:', error);
+    logger.error('Error in exchangeToken:', error);
     res.status(500);
     throw new Error('Failed to link bank account');
   }
@@ -58,7 +59,7 @@ export const getLinkedAccounts = asyncHandler(async (req, res) => {
       
     res.json(accounts);
   } catch (error) {
-    console.error('Error in getLinkedAccounts:', error);
+    logger.error('Error in getLinkedAccounts:', error);
     res.status(500);
     throw new Error('Failed to fetch linked accounts');
   }
@@ -78,7 +79,7 @@ export const syncTransactions = asyncHandler(async (req, res) => {
       transactionsAdded: result.added
     });
   } catch (error) {
-    console.error('Error in syncTransactions:', error);
+    logger.error('Error in syncTransactions:', error);
     res.status(500);
     throw new Error('Failed to sync transactions');
   }
@@ -105,7 +106,7 @@ export const removeLinkedAccount = asyncHandler(async (req, res) => {
     
     res.json({ message: 'Bank account removed successfully' });
   } catch (error) {
-    console.error('Error in removeLinkedAccount:', error);
+    logger.error('Error in removeLinkedAccount:', error);
     if (!error.statusCode) {
       res.status(500);
     }
@@ -118,7 +119,7 @@ export const removeLinkedAccount = asyncHandler(async (req, res) => {
 // @access Private
 export const createConnectSession = asyncHandler(async (req, res) => {
   try {
-    console.log('Creating connect session for user:', req.user?._id);
+    
     
     if (!req.user || !req.user._id) {
       res.status(401);
@@ -135,9 +136,9 @@ export const createConnectSession = asyncHandler(async (req, res) => {
     const session = await bankIntegrationService.createConnectSession(userId, userEmail);
     res.json(session);
   } catch (error) {
-    console.error('Error in createConnectSession:', error.message);
+    logger.error('Error in createConnectSession:', error.message);
     if (error.response?.data?.error) {
-      console.error('Salt Edge API error:', error.response.data.error);
+      logger.error('Salt Edge API error:', error.response.data.error);
     }
     res.status(500);
     throw new Error(`Failed to create connect session: ${error.message}`);
@@ -149,7 +150,7 @@ export const createConnectSession = asyncHandler(async (req, res) => {
 // @access Private
 export const handleCallback = asyncHandler(async (req, res) => {
   try {
-    console.log('Handling Salt Edge callback with payload:', req.body);
+    
     
     const { connection_id } = req.body;
     
@@ -167,7 +168,7 @@ export const handleCallback = asyncHandler(async (req, res) => {
       data: result
     });
   } catch (error) {
-    console.error('Error in handleCallback:', error);
+    logger.error('Error in handleCallback:', error);
     res.status(500);
     throw new Error(`Failed to process bank connection: ${error.message}`);
   }
@@ -181,7 +182,7 @@ export const getConnectedAccounts = asyncHandler(async (req, res) => {
     const accounts = await BankAccount.find({ user: req.user._id });
     res.json(accounts);
   } catch (error) {
-    console.error('Error in getConnectedAccounts:', error);
+    logger.error('Error in getConnectedAccounts:', error);
     res.status(500);
     throw new Error('Failed to fetch accounts');
   }
@@ -206,7 +207,7 @@ export const fetchTransactions = asyncHandler(async (req, res) => {
       transactions
     });
   } catch (error) {
-    console.error('Error in fetchTransactions:', error);
+    logger.error('Error in fetchTransactions:', error);
     res.status(500);
     throw new Error('Failed to fetch transactions');
   }

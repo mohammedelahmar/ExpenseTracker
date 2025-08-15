@@ -17,7 +17,6 @@ const LinkedAccountsList = ({ refresh }) => {
         setAccounts(data);
       } catch (err) {
         setError('Failed to fetch linked accounts');
-        console.error('Error fetching accounts:', err);
       } finally {
         setLoading(false);
       }
@@ -40,7 +39,6 @@ const LinkedAccountsList = ({ refresh }) => {
         success: false,
         message: err.message || 'Failed to sync transactions'
       });
-      console.error('Error syncing transactions:', err);
     } finally {
       setSyncing(false);
     }
@@ -53,7 +51,6 @@ const LinkedAccountsList = ({ refresh }) => {
         setAccounts(accounts.filter(account => account._id !== accountId));
       } catch (err) {
         setError('Failed to remove account');
-        console.error('Error removing account:', err);
       }
     }
   };

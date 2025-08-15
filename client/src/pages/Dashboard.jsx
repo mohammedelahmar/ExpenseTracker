@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import expenseService from '../services/expenseService';
@@ -59,8 +59,7 @@ const Dashboard = () => {
           endDate: dateRange.endDate
         });
         setStats(statsData);
-      } catch (statsError) {
-        console.error('Error fetching stats:', statsError);
+  } catch (statsError) {
         // Continue with other fetches even if stats fail
       }
 
@@ -71,8 +70,7 @@ const Dashboard = () => {
           sortBy: 'date:desc'
         });
         setRecentExpenses(expensesData.expenses || []);
-      } catch (expensesError) {
-        console.error('Error fetching recent expenses:', expensesError);
+  } catch (expensesError) {
         // Continue with other fetches
       }
 
@@ -86,11 +84,9 @@ const Dashboard = () => {
         if (monthlyData && Array.isArray(monthlyData.labels) && Array.isArray(monthlyData.data)) {
           setMonthlyChartData(monthlyData);
         } else {
-          console.error('Invalid monthly chart data format:', monthlyData);
           setMonthlyChartData({ labels: [], data: [] });
         }
       } catch (monthlyError) {
-        console.error('Error fetching monthly chart data:', monthlyError);
         setMonthlyChartData({ labels: [], data: [] });
       }
 
@@ -104,17 +100,14 @@ const Dashboard = () => {
         if (categoryData && Array.isArray(categoryData.labels) && Array.isArray(categoryData.data)) {
           setCategoryChartData(categoryData);
         } else {
-          console.error('Invalid category chart data format:', categoryData);
           setCategoryChartData({ labels: [], data: [] });
         }
       } catch (categoryError) {
-        console.error('Error fetching category chart data:', categoryError);
         setCategoryChartData({ labels: [], data: [] });
       }
 
       setLoading(false);
-    } catch (err) {
-      console.error('Error fetching dashboard data:', err);
+  } catch (err) {
       setError('Failed to load dashboard data. Please try again later.');
       setLoading(false);
     }
@@ -187,7 +180,7 @@ const Dashboard = () => {
   };
 
   // Prepare bar chart data
-  const barChartData = {
+  const barChartData = useMemo(() => ({
     labels: monthlyChartData.labels || [],
     datasets: [
       {
@@ -200,10 +193,10 @@ const Dashboard = () => {
         hoverBackgroundColor: 'rgba(67, 97, 238, 0.8)',
       },
     ],
-  };
+  }), [monthlyChartData.labels, monthlyChartData.data]);
 
   // Chart options
-  const barChartOptions = {
+  const barChartOptions = useMemo(() => ({
     maintainAspectRatio: false,
     responsive: true,
     interaction: {
@@ -256,10 +249,10 @@ const Dashboard = () => {
         }
       }
     }
-  };
+  }), [isMobile]);
 
   // Prepare pie chart data
-  const pieChartData = {
+  const pieChartData = useMemo(() => ({
     labels: categoryChartData.labels || [],
     datasets: [
       {
@@ -292,10 +285,10 @@ const Dashboard = () => {
         hoverOffset: 15,
       },
     ],
-  };
+  }), [categoryChartData.labels, categoryChartData.data]);
 
   // Pie chart options
-  const pieChartOptions = {
+  const pieChartOptions = useMemo(() => ({
     maintainAspectRatio: false,
     responsive: true,
     interaction: { intersect: false },
@@ -330,7 +323,7 @@ const Dashboard = () => {
         }
       }
     }
-  };
+  }), [isMobile]);
 
   if (loading) {
     return (

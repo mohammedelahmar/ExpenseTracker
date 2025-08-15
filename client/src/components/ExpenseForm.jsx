@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import axios from 'axios';
+import api from '../services/api';
 import '../styles/ExpenseForm.css';
 import ReceiptUpload from './ReceiptUpload';
+import { makeSafeUrl } from '../utils/url';
 
 const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
   const { user } = useContext(AuthContext);
@@ -26,12 +27,9 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
     if (user) {
       const fetchCategories = async () => {
         try {
-          const res = await axios.get('/api/categories', {
-            headers: { Authorization: `Bearer ${user.token}` }
-          });
+            const res = await api.get('/categories');
           setCategories(res.data);
         } catch (err) {
-          console.error('Error fetching categories:', err);
           setError('Failed to load categories');
         }
       };
@@ -52,11 +50,6 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
       });
       
       if (editExpense.receipt) {
-        const makeSafeUrl = (u) => {
-          if (!u) return '';
-          if (/^https?:\/\//i.test(u)) return u;
-          return u.startsWith('/uploads/') ? u : `/${u}`;
-        };
         const safeUrl = makeSafeUrl(editExpense.receipt);
         setReceiptPreview(safeUrl);
       }
@@ -107,7 +100,7 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
   };
 
   const handleReceiptProcessed = (receiptData) => {
-    console.log('Receipt data received:', receiptData);
+  // Receipt data processing
     
     let formattedDate = formData.date;
     if (receiptData.date) {
@@ -117,7 +110,7 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
           formattedDate = parsedDate.toISOString().split('T')[0];
         }
       } catch (e) {
-        console.error('Error parsing date:', e);
+  // ignore parsing errors
       }
     }
     
@@ -133,13 +126,8 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
       return newData;
     });
     
-    if (receiptData.receipt) {
-      const makeSafeUrl = (u) => {
-        if (!u) return '';
-        if (/^https?:\/\//i.test(u)) return u;
-        return u.startsWith('/uploads/') ? u : `/${u}`;
-      };
-      const safeUrl = makeSafeUrl(receiptData.receipt);
+  if (receiptData.receipt) {
+  const safeUrl = makeSafeUrl(receiptData.receipt);
       setReceiptPreview(safeUrl);
     }
     
@@ -148,7 +136,7 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
   };
   
   const handleReceiptError = (error) => {
-    console.error("Receipt processing error:", error);
+  setError('Error processing receipt. Please try again or enter details manually.');
     setError('Error processing receipt. Please try again or enter details manually.');
   };
 
@@ -170,20 +158,15 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
     }
 
     try {
-      const config = {
-        headers: { Authorization: `Bearer ${user.token}` }
-      };
-
       let response;
       if (editExpense) {
-        response = await axios.put(
-          `/api/expenses/${editExpense._id}`,
-          formData,
-          config
+        response = await api.put(
+          `/expenses/${editExpense._id}`,
+          formData
         );
         setSuccess('Expense updated successfully!');
       } else {
-        response = await axios.post('/api/expenses', formData, config);
+        response = await api.post('/expenses', formData);
         setSuccess('Expense added successfully!');
       }
 
@@ -211,8 +194,7 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
       setError(
         err.response?.data?.message || 
         'An error occurred. Please try again.'
-      );
-      console.error('Error submitting expense:', err);
+  );
     }
   };
 
@@ -238,13 +220,7 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
   };
 
   // Calculate progress based on required fields
-  const calculateProgress = () => {
-    const requiredFields = ['amount', 'category', 'date', 'description'];
-    const completedFields = requiredFields.filter(field => 
-      formData[field] && formData[field].toString().trim() !== ''
-    ).length;
-    return (completedFields / requiredFields.length) * 100;
-  };
+  // Progress calculation removed (unused)
 
   return (
     <div className="expense-form-wrapper">

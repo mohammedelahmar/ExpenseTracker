@@ -22,6 +22,6 @@ router.get('/anomalies', protect, getAnomalyDetection);
 router.get('/recommendations', protect, getPersonalizedTips);
 router.get('/summary', protect, getAnalyticsSummary);
 
-console.log('Analytics routes registered:', router.stack.map(r => r.route?.path).filter(Boolean));
+// Avoid noisy route logging in production
 
 export default router;

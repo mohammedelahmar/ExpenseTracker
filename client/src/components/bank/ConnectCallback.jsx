@@ -19,7 +19,7 @@ const ConnectCallback = () => {
         }
         
         // Process the connection
-        const result = await bankService.handleCallback(connectionId);
+  await bankService.handleCallback(connectionId);
         
         setStatus('success');
         
@@ -36,7 +36,6 @@ const ConnectCallback = () => {
         }, 1500);
         
       } catch (error) {
-        console.error('Error processing callback:', error);
         setStatus('error');
         
         // Redirect after showing error

@@ -23,9 +23,8 @@ export const AuthProvider = ({ children }) => {
       if (storedUser) {
         setUser(JSON.parse(storedUser));
       }
-    } catch (error) {
-      console.error("Error parsing user from localStorage:", error);
-    } finally {
+  } catch (error) {
+  } finally {
       setLoading(false);
     }
   }, []);

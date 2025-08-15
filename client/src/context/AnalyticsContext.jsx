@@ -1,13 +1,11 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import api from '../utils/api';
-import { useAuth } from './AuthContext';
+import api from '../services/api';
 
 const AnalyticsContext = createContext();
 
 export const useAnalytics = () => useContext(AnalyticsContext);
 
 export const AnalyticsProvider = ({ children }) => {
-  const { token } = useAuth();
   const [trends, setTrends] = useState(null);
   const [forecasts, setForecasts] = useState(null);
   const [anomalies, setAnomalies] = useState(null);
@@ -28,7 +26,10 @@ export const AnalyticsProvider = ({ children }) => {
       setTrends(response.data.data);
       return response.data.data;
     } catch (err) {
-      console.error('Error fetching trends:', err.response?.status, err.response?.data);
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.error('Error fetching trends:', err.response?.status, err.response?.data);
+      }
       setError(err.response?.data?.message || 'Failed to fetch spending trends');
       throw err;
     } finally {
@@ -43,7 +44,10 @@ export const AnalyticsProvider = ({ children }) => {
       setForecasts(response.data.data);
       return response.data.data;
     } catch (err) {
-      console.error('Error fetching forecasts:', err.response?.status, err.response?.data);
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.error('Error fetching forecasts:', err.response?.status, err.response?.data);
+      }
       setError(err.response?.data?.message || 'Failed to fetch spending forecasts');
     } finally {
       setLoading(prev => ({ ...prev, forecasts: false }));
@@ -57,7 +61,10 @@ export const AnalyticsProvider = ({ children }) => {
       setAnomalies(response.data.data);
       return response.data.data;
     } catch (err) {
-      console.error('Error fetching anomalies:', err.response?.status, err.response?.data);
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.error('Error fetching anomalies:', err.response?.status, err.response?.data);
+      }
       setError(err.response?.data?.message || 'Failed to fetch spending anomalies');
     } finally {
       setLoading(prev => ({ ...prev, anomalies: false }));
@@ -71,7 +78,10 @@ export const AnalyticsProvider = ({ children }) => {
       setRecommendations(response.data.data);
       return response.data.data;
     } catch (err) {
-      console.error('Error fetching recommendations:', err.response?.status, err.response?.data);
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.error('Error fetching recommendations:', err.response?.status, err.response?.data);
+      }
       setError(err.response?.data?.message || 'Failed to fetch spending recommendations');
     } finally {
       setLoading(prev => ({ ...prev, recommendations: false }));

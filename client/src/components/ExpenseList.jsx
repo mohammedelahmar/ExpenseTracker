@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import expenseService from '../services/expenseService';
+import { makeSafeUrl } from '../utils/url';
 import ReceiptViewer from './ReceiptViewer';
 import '../styles/ExpenseList.css';
 import Lottie from 'lottie-react';
@@ -98,7 +99,6 @@ const ExpenseList = () => {
         setLoading(false);
       } catch (err) {
         setError('Failed to load expenses');
-        console.error(err);
         setLoading(false);
       }
     };
@@ -163,7 +163,6 @@ const ExpenseList = () => {
         setExpenses(expenses.filter(expense => expense._id !== id));
       } catch (err) {
         setError('Failed to delete expense');
-        console.error(err);
       }
     }
   };
@@ -201,9 +200,7 @@ const ExpenseList = () => {
       return <span className="no-receipt">No receipt</span>;
     }
 
-    const receiptUrl = receipt.startsWith('http')
-      ? receipt
-      : `http://localhost:5000/${receipt}`;
+  const receiptUrl = makeSafeUrl(receipt);
 
     return (
       <button

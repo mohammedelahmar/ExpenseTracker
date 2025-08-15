@@ -43,8 +43,7 @@ const GoalProgressCard = ({ goal, onUpdate }) => {
         await goalService.deleteGoal(goal._id);
         if (onUpdate) onUpdate();
       } catch (err) {
-        setError('Failed to delete goal');
-        console.error(err);
+          setError('Failed to delete goal');
       } finally {
         setLoading(false);
       }
@@ -58,8 +57,7 @@ const GoalProgressCard = ({ goal, onUpdate }) => {
       if (onUpdate) onUpdate();
       setShowContributeModal(false);
     } catch (err) {
-      setError('Failed to add contribution');
-      console.error(err);
+  setError('Failed to add contribution');
     } finally {
       setLoading(false);
     }

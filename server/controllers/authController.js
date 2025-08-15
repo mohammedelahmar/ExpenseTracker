@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs'; // Add this import
 import { OAuth2Client } from 'google-auth-library';
 import crypto from 'crypto'; // Add this import
 import { sendEmail } from '../services/emailService.js'; // Add this import
+import logger from '../utils/logger.js';
 
 // @desc   Register new user
 // @route  POST /api/users/register
@@ -155,7 +156,7 @@ const googleLogin = asyncHandler(async(req, res) => {
   }
   
   try {
-    console.log('Verifying Google token for client ID:', process.env.GOOGLE_CLIENT_ID);
+    
     
     const ticket = await googleClient.verifyIdToken({
       idToken: token,
@@ -165,7 +166,7 @@ const googleLogin = asyncHandler(async(req, res) => {
     const payload = ticket.getPayload();
     const { email, name } = payload;
     
-    console.log('Google authentication successful for:', email);
+    
     
     // Find user by email
     let user = await User.findOne({ email });
@@ -185,7 +186,7 @@ const googleLogin = asyncHandler(async(req, res) => {
         isGoogleAccount: true
       });
       
-      console.log('New user created for Google login:', email);
+      
     }
     
     res.json({
@@ -197,7 +198,7 @@ const googleLogin = asyncHandler(async(req, res) => {
       token: generateToken(user._id)
     });
   } catch (error) {
-    console.error('Google authentication error:', error);
+    logger.error('Google authentication error:', error);
     res.status(401);
     throw new Error(`Google authentication failed: ${error.message}`);
   }

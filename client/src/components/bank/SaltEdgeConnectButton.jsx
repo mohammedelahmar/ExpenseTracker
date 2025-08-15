@@ -24,8 +24,7 @@ const SaltEdgeConnectButton = ({ onSuccess, onExit }) => {
         throw new Error('Invalid connect session');
       }
     } catch (err) {
-      setError('Failed to initialize bank connection. Please try again.');
-      console.error('Failed to get connect session:', err);
+    setError('Failed to initiate bank connection. Please try again.');
       
       if (onExit) {
         onExit(err);

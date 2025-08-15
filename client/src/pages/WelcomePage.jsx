@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, TrendingUp, Target, FileText, Camera, PieChart, Calendar, Bell, Shield, Zap, BarChart3, Receipt, Brain, DollarSign, CreditCard, Users, Star, LogIn, UserPlus } from 'lucide-react';
+import { ChevronRight, Target, Camera, PieChart, Shield, Zap, BarChart3, Receipt, Brain, DollarSign, CreditCard, Star, LogIn, UserPlus, Users } from 'lucide-react';
 
 const AnimatedCounter = ({ end, duration = 2000, suffix = "" }) => {
   const [count, setCount] = useState(0);

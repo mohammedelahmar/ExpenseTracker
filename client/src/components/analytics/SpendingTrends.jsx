@@ -26,8 +26,7 @@ const SpendingTrends = ({ trends, loading }) => {
     if (typeof fetchTrends === 'function') {
       fetchTrends(period, Number(limit)).catch(() => {});
     }
-  // Only depend on period/limit to avoid re-running when function identity changes
-  }, [period, limit]);
+  }, [period, limit, fetchTrends]);
 
   if (isLoading) {
     return <AnalyticsLoading 

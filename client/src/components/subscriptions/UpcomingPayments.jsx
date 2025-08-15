@@ -12,7 +12,6 @@ const UpcomingPayments = () => {
         setUpcomingPayments(data);
         setLoading(false);
       } catch (err) {
-        console.error('Failed to load upcoming payments:', err);
         setLoading(false);
       }
     };

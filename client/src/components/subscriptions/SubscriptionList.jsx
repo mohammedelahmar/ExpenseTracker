@@ -22,7 +22,6 @@ const SubscriptionList = () => {
         setLoading(false);
       } catch (err) {
         setError('Failed to load subscriptions');
-        console.error(err);
         setLoading(false);
       }
     };
@@ -37,7 +36,6 @@ const SubscriptionList = () => {
         setSubscriptions(subscriptions.filter(sub => sub._id !== id));
       } catch (err) {
         setError('Failed to delete subscription');
-        console.error(err);
       }
     }
   };
@@ -64,7 +62,6 @@ const SubscriptionList = () => {
       });
     } catch (err) {
       setError('Failed to record payment');
-      console.error(err);
     }
   };
   

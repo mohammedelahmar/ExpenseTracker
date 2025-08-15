@@ -37,8 +37,7 @@ const SubscriptionsSummary = () => {
           
         setTotalMonthly(monthlyTotal);
         setLoading(false);
-      } catch (err) {
-        console.error('Error fetching subscription data:', err);
+  } catch (err) {
         setLoading(false);
       }
     };

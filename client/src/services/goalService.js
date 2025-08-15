@@ -1,8 +1,8 @@
-import axios from 'axios';
 import authService from './authService';
+import api from './api';
 
 // Set up base URL
-const API_URL = '/api/goals';
+const BASE = '/goals';
 
 // Configure axios with auth token before each request
 const configureRequest = () => {
@@ -13,7 +13,7 @@ const configureRequest = () => {
 const fetchGoals = async () => {
   try {
     configureRequest();
-    const response = await axios.get(API_URL);
+  const response = await api.get(BASE);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to fetch goals' };
@@ -24,7 +24,7 @@ const fetchGoals = async () => {
 const getGoalById = async (id) => {
   try {
     configureRequest();
-    const response = await axios.get(`${API_URL}/${id}`);
+  const response = await api.get(`${BASE}/${id}`);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to fetch goal details' };
@@ -35,7 +35,7 @@ const getGoalById = async (id) => {
 const createGoal = async (goalData) => {
   try {
     configureRequest();
-    const response = await axios.post(API_URL, goalData);
+  const response = await api.post(BASE, goalData);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to create goal' };
@@ -46,7 +46,7 @@ const createGoal = async (goalData) => {
 const updateGoal = async (id, goalData) => {
   try {
     configureRequest();
-    const response = await axios.put(`${API_URL}/${id}`, goalData);
+  const response = await api.put(`${BASE}/${id}`, goalData);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to update goal' };
@@ -57,7 +57,7 @@ const updateGoal = async (id, goalData) => {
 const deleteGoal = async (id) => {
   try {
     configureRequest();
-    const response = await axios.delete(`${API_URL}/${id}`);
+  const response = await api.delete(`${BASE}/${id}`);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to delete goal' };
@@ -68,14 +68,14 @@ const deleteGoal = async (id) => {
 const contributeToGoal = async (id, amount) => {
   try {
     configureRequest();
-    const response = await axios.post(`${API_URL}/${id}/contribute`, { amount });
+  const response = await api.post(`${BASE}/${id}/contribute`, { amount });
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to add contribution' };
   }
 };
 
-export default {
+const goalService = {
   fetchGoals,
   getGoalById,
   createGoal,
@@ -83,3 +83,5 @@ export default {
   deleteGoal,
   contributeToGoal
 };
+
+export default goalService;

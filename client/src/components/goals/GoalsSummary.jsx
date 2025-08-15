@@ -18,7 +18,7 @@ const GoalsSummary = () => {
           .slice(0, 3); // Get top 3 upcoming goals
         setGoals(activeGoals);
       } catch (err) {
-        console.error('Error fetching goals for dashboard:', err);
+        // failed to load goals
       } finally {
         setLoading(false);
       }

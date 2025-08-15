@@ -58,8 +58,7 @@ const Register = () => {
       
       // Redirect to dashboard
       navigate('/dashboard');
-    } catch (err) {
-      console.error('Registration error:', err);
+  } catch (err) {
       setError(err.message || 'Registration failed');
     } finally {
       setLoading(false);
@@ -79,8 +78,7 @@ const Register = () => {
       
       // Redirect to dashboard
       navigate('/dashboard');
-    } catch (err) {
-      console.error('Google registration error:', err);
+  } catch (err) {
       setError(err.message || 'Google registration failed');
     } finally {
       setLoading(false);

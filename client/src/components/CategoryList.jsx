@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api';
 import { toast } from 'react-toastify';
 import Lottie from 'lottie-react';
 import '../styles/CategoryList.css';
@@ -12,10 +12,7 @@ const CategoryList = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const { data } = await axios.get('/api/categories', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+  const { data } = await api.get('/categories');
         setCategories(data);
       } catch (error) {
         toast.error(error.response?.data?.message || 'Failed to fetch categories');
@@ -30,10 +27,7 @@ const CategoryList = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this category?')) {
       try {
-        const token = localStorage.getItem('token');
-        await axios.delete(`/api/categories/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+  await api.delete(`/categories/${id}`);
         setCategories(categories.filter(category => category._id !== id));
         toast.success('Category deleted successfully');
       } catch (error) {

@@ -35,7 +35,7 @@ const EditExpense = () => {
   useEffect(() => {
     const fetchExpense = async () => {
       try {
-        console.log(`Attempting to fetch expense with ID: ${id}`);
+        
         
         // Check if we have a token before proceeding
         const token = localStorage.getItem('token');
@@ -53,7 +53,7 @@ const EditExpense = () => {
           return;
         }
         
-        console.log('Successfully received expense data:', data);
+        
         
         // Format the date to YYYY-MM-DD for the date input
         const formattedDate = data.date ? new Date(data.date).toISOString().split('T')[0] : '';
@@ -62,8 +62,7 @@ const EditExpense = () => {
           date: formattedDate
         });
         setLoading(false);
-      } catch (err) {
-        console.error('Error fetching expense:', err);
+  } catch (err) {
         setError(`Failed to fetch expense details: ${err.message || 'Unknown error'}`);
         setLoading(false);
       }
@@ -124,7 +123,6 @@ const EditExpense = () => {
       navigate('/expenses');
     } catch (err) {
       setError('Failed to update expense');
-      console.error(err);
     } finally {
       setIsSubmitting(false);
     }

@@ -19,7 +19,6 @@ export const createLinkToken = async (userId) => {
     const response = await plaidClient.linkTokenCreate(configs);
     return response.data;
   } catch (error) {
-    console.error('Error creating link token details:', error);
     throw error;
   }
 };
@@ -66,7 +65,6 @@ export const exchangePublicToken = async (publicToken, metadata, userId) => {
     
     return accounts;
   } catch (error) {
-    console.error('Error exchanging token:', error);
     throw error;
   }
 };
@@ -131,7 +129,6 @@ export const syncTransactions = async (userId, accessToken = null) => {
     
     return { added: addedCount };
   } catch (error) {
-    console.error('Error syncing transactions:', error);
     throw error;
   }
 };
@@ -139,17 +136,15 @@ export const syncTransactions = async (userId, accessToken = null) => {
 // Create a connect session for connecting bank accounts
 export const createConnectSession = async (userId, userEmail) => {
   try {
-    console.log("Creating Salt Edge connect session for user:", userId);
     
     // Get or create Salt Edge customer to get the numeric ID
     const customer = await createSaltEdgeCustomer(userId, userEmail);
     
     // Ensure HTTPS for production or use redirects for localhost
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
     const returnTo = `${clientUrl}/bank-connections/callback`;
     
-    console.log("Using return URL:", returnTo);
-    console.log("Using customer ID:", customer.numericId);
+    
     
     const response = await saltEdgeClient.post('/connect_sessions/create', {
       data: {
@@ -165,10 +160,8 @@ export const createConnectSession = async (userId, userEmail) => {
       }
     });
     
-    console.log("Connect session created:", response.data.data.expires_at);
     return response.data.data;
   } catch (error) {
-    console.error('Salt Edge Error Details:', error.response?.data?.error || error.message);
     throw error;
   }
 };
@@ -206,7 +199,6 @@ export const handleConnectionCallback = async (connectionId, userId) => {
     
     return savedAccounts;
   } catch (error) {
-    console.error('Error processing Salt Edge connection:', error);
     throw error;
   }
 };
@@ -253,7 +245,6 @@ export const fetchTransactions = async (accountId, userId) => {
     
     return savedTransactions;
   } catch (error) {
-    console.error('Error fetching transactions:', error);
     throw error;
   }
 };
@@ -293,7 +284,6 @@ function determineCategory(category) {
 // Add to bankIntegrationService.js
 export const createSaltEdgeCustomer = async (userId, userEmail) => {
   try {
-    console.log("Creating Salt Edge customer for user:", userId);
     
     // Generate a numeric identifier from the ObjectId
     // Simple approach: use last 8 digits of ObjectId converted to integer
@@ -307,7 +297,7 @@ export const createSaltEdgeCustomer = async (userId, userEmail) => {
       }
     });
     
-    console.log("Salt Edge customer created:", response.data.data.id);
+    
     
     // Store the mapping between your user and the Salt Edge customer ID
     // This could be saved in your User model or a separate mapping table
@@ -316,11 +306,9 @@ export const createSaltEdgeCustomer = async (userId, userEmail) => {
       numericId
     };
   } catch (error) {
-    console.error('Salt Edge Customer Error:', error.response?.data || error.message);
     // If customer already exists, we need to retrieve the actual Salt Edge customer ID
     if (error.response?.status === 409 || 
         error.response?.data?.error?.message?.includes('already exists')) {
-      console.log("Customer already exists, getting existing customer ID...");
       
       // Generate the same numeric ID for consistency
       const numericId = parseInt(userId.toString().slice(-8), 16);

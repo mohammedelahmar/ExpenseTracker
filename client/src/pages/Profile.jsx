@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import axios from 'axios';
+import api from '../services/api';
 import '../styles/Profile.css';
 
 const Profile = () => {
@@ -44,11 +44,7 @@ const Profile = () => {
     setMessage({ type: '', text: '' });
 
     try {
-      const config = {
-        headers: { Authorization: `Bearer ${user.token}` }
-      };
-
-      const response = await axios.put('/api/users/profile', profileData, config);
+  const response = await api.put('/users/profile', profileData);
       
       // Update stored user data
       const updatedUser = { ...user, ...response.data };
@@ -84,14 +80,10 @@ const Profile = () => {
     setMessage({ type: '', text: '' });
 
     try {
-      const config = {
-        headers: { Authorization: `Bearer ${user.token}` }
-      };
-
-      await axios.put('/api/users/password', {
+  await api.put('/users/password', {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword
-      }, config);
+  });
       
       // Clear password fields
       setPasswordData({

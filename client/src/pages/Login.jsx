@@ -55,8 +55,7 @@ const Login = () => {
       
       // Redirect to dashboard
       navigate('/dashboard');
-    } catch (err) {
-      console.error('Login error:', err);
+  } catch (err) {
       setError(err.message || 'Invalid credentials. Please try again.');
     } finally {
       setLoading(false);
@@ -72,8 +71,7 @@ const Login = () => {
       
       login(userData);
       navigate('/dashboard');
-    } catch (err) {
-      console.error('Google login error:', err);
+  } catch (err) {
       setError(err.message || 'Google sign-in failed. Please try again.');
     } finally {
       setLoading(false);

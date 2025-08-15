@@ -18,7 +18,6 @@ const EditGoal = () => {
         setGoal(data);
       } catch (err) {
         setError('Failed to load goal details');
-        console.error(err);
       } finally {
         setLoading(false);
       }

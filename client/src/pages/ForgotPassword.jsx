@@ -18,8 +18,7 @@ const ForgotPassword = () => {
     try {
       const response = await authService.forgotPassword(email);
       setMessage(response.message || 'Password reset email sent. Please check your inbox.');
-    } catch (err) {
-      console.error('Forgot password error:', err);
+  } catch (err) {
       setError(err.message || 'Failed to send reset email. Please try again.');
     } finally {
       setLoading(false);

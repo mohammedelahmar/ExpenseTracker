@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import goalService from '../../services/goalService';
 import '../../styles/GoalForm.css';
 
@@ -89,12 +89,11 @@ const GoalForm = ({ editGoal = null, onSubmitSuccess }) => {
       
       // Redirect to goals page
       navigate('/goals');
-    } catch (err) {
+  } catch (err) {
       setLoading(false);
       setError(
         err.message || 'An error occurred. Please try again.'
       );
-      console.error('Error submitting goal:', err);
     }
   };
 

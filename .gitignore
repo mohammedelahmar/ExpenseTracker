@@ -14,6 +14,11 @@ client/.env.production.local
 # Ignore build files
 client/build/
 server/dist/
+server/uploads/
+server/tmp/
+package-lock.json
+client/package-lock.json
+server/package-lock.json
 
 # Ignore system files
 .DS_Store

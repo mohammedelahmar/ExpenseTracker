@@ -1,7 +1,7 @@
-import axios from 'axios';
 import authService from './authService';
+import api from './api';
 
-const API_URL = '/api/receipts';
+const BASE = '/receipts';
 
 // Configure axios with auth token
 const configureRequest = () => {
@@ -24,14 +24,13 @@ const uploadReceipt = async (file) => {
       },
     };
     
-    const response = await axios.post(`${API_URL}/upload`, formData, config);
+  const response = await api.post(`${BASE}/upload`, formData, config);
     return response.data;
   } catch (error) {
-    console.error('Receipt upload error:', error);
     throw error.response?.data || { message: 'Failed to upload receipt' };
   }
 };
 
-export default {
-  uploadReceipt
-};
+const receiptService = { uploadReceipt };
+
+export default receiptService;

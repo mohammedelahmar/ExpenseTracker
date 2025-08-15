@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext, useCallback } from 'react';
 import { Bar, Pie } from 'react-chartjs-2';
 import { AuthContext } from '../context/AuthContext';
-import axios from 'axios';
+// axios calls are handled through expenseService
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -38,11 +38,9 @@ const fetchChartData = useCallback(async () => {
 
   try {
     const data = await expenseService.getChartData(period, customFilters);
-    console.log('Chart Data Response:', data); // Add logging
     setChartData(data);
     setLoading(false);
   } catch (err) {
-    console.error('Chart Error Details:', err.message, err.response?.data);
     setError(err.message || 'Failed to load chart data');
     setLoading(false);
   }
