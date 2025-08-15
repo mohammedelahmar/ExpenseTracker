@@ -321,6 +321,7 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
                 required
                 min="0.01"
                 placeholder="0.00"
+                data-testid="expense-amount"
               />
             </div>
             {fieldErrors.amount && (
@@ -341,6 +342,7 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
               value={formData.category}
               onChange={handleChange}
               required
+              data-testid="expense-category"
             >
               <option value="">Choose a category...</option>
               {categories.map(category => (
@@ -370,6 +372,7 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
               onChange={handleChange}
               required
               max={new Date().toISOString().split('T')[0]}
+              data-testid="expense-date"
             />
           </div>
           
@@ -389,6 +392,7 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
               rows="3"
               placeholder="What was this expense for?"
               maxLength="500"
+              data-testid="expense-description"
             ></textarea>
             <div className="character-count">
               {formData.description.length}/500 characters
@@ -473,6 +477,7 @@ const ExpenseForm = ({ editExpense = null, onSubmitSuccess, onGoBack }) => {
                 type="submit" 
                 className="btn btn-primary"
                 disabled={loading || Object.keys(fieldErrors).length > 0}
+                data-testid="expense-submit"
               >
                 {loading ? (
                   <>

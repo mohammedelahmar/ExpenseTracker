@@ -141,6 +141,7 @@ const WelcomePage = () => {
         <div className="absolute top-6 right-6 z-50 flex items-center gap-3">
           <button 
             onClick={handleLogin}
+            data-testid="welcome-login"
             className="flex items-center gap-2 px-4 py-2.5 bg-white/90 backdrop-blur-sm text-gray-700 hover:text-blue-600 font-medium transition-all duration-300 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 border border-white/20"
           >
             <LogIn className="h-4 w-4" />
@@ -148,6 +149,7 @@ const WelcomePage = () => {
           </button>
           <button 
             onClick={handleRegister}
+            data-testid="welcome-register"
             className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105"
           >
             <UserPlus className="h-4 w-4" />

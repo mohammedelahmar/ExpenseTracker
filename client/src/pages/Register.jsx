@@ -171,6 +171,7 @@ const Register = () => {
             type="submit" 
             className="btn btn-primary btn-block"
             disabled={loading}
+            data-testid="register-submit"
           >
             {loading ? 'Creating Account...' : 'Create Account'}
           </button>

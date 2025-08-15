@@ -104,23 +104,47 @@ Screenshots are in `screenshot/` — the full step‑by‑step manual with image
 
 ## Testing
 
+Server (Jest + Supertest)
+```bash
+cd server
+npm test          # run all tests locally using in-memory MongoDB
+npm run test:watch
+npm run test:ci   # with coverage (used in CI)
+```
+
 Client (Jest via react-scripts)
 ```bash
 cd client
 npm test -- --watchAll=false
 ```
 
-Server
-- No unit tests are included yet. Add tests with Jest or Mocha/Chai and run them in CI (see Roadmap).
-
 End‑to‑end (Cypress)
-- Recommended: add `cypress/` specs to cover auth, expenses, categories, OCR flow. Run with `npx cypress run`.
+```bash
+# In one terminal start API
+cd server
+# Option A: use real Mongo
+CONNECTION_URL=mongodb://localhost:27017/expense_e2e JWT_SECRET=dev npm start
+# Option B: use in-memory Mongo (no Mongo install needed)
+npm run start:mem
+
+# In another terminal build & serve client
+cd client
+npm run build
+npx serve -s build -l 3000
+
+# Then run Cypress in headless mode
+npm run cypress:run
+```
 
 OCR verification
 - Upload a known sample receipt and verify extracted fields on the form preview before saving.
 
 GitHub Actions
-- Workflow `.github/workflows/ci.yml` installs server/client, builds the client, and runs client tests in CI mode. Extend to run server tests when added.
+- Workflow `.github/workflows/ci.yml`:
+	- Installs and tests server with Jest on Node 18
+	- Installs and tests client with Jest
+	- Builds client, starts API and static server, runs Cypress E2E in headless mode
+	- Uses a MongoDB service in CI; workflow fails if any test fails
 
 ## Deployment
 
@@ -151,16 +175,17 @@ Security considerations
 - Broken images: verify `/uploads` is served and `PUBLIC_BASE_URL` points to API origin
 
 ## Roadmap
-- Add server unit/integration tests (Jest + supertest, mongodb-memory-server)
-- Add Cypress e2e suite and fixtures for OCR
+- Expand Cypress E2E coverage (more user journeys, OCR fixtures)
 - Multi‑currency support and FX conversion
 - Shared budgets and household accounts
 - Plaid alternative connector in addition to Salt Edge
 
 ## Known limitations
-- No bundled server test suite yet
 - OCR accuracy depends on receipt quality; manual corrections may be needed
 - Bank integration requires valid Salt Edge credentials and may be region‑limited
+
+## Packaging for delivery
+See `docs/DELIVERY.md` for step‑by‑step instructions to produce clean source and distribution archives.
 
 ## License
 

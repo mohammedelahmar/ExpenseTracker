@@ -473,7 +473,7 @@ const Dashboard = () => {
         </div>
         
         {/* Recent Expenses Table */}
-        <div className="recent-expenses">
+  <div className="recent-expenses" data-testid="recent-expenses">
           <div className="recent-expenses-header">
             <h3 className="recent-expenses-title">Recent Expenses</h3>
             <Link to="/expenses" className="btn btn-primary">

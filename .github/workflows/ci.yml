@@ -9,35 +9,79 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:6
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'" \
+          --health-interval 10s \
+          --health-timeout 5s \
+          --health-retries 5
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Use Node.js 18
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 18
           cache: 'npm'
+      - name: Cache root node_modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            **/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
-      - name: Install server deps
+      - name: Install server dependencies
         working-directory: server
-        run: npm ci || npm install
+        run: npm ci
 
-      - name: Install client deps
+      - name: Run server tests (Jest)
+        working-directory: server
+        env:
+          NODE_ENV: test
+          CONNECTION_URL: mongodb://localhost:27017/expense_ci
+          JWT_SECRET: test_secret
+        run: npm run test:ci
+
+      - name: Install client dependencies
         working-directory: client
-        run: npm ci || npm install
+        run: npm ci
 
-      - name: Build client
-        working-directory: client
-        run: npm run build
-
-      - name: Run client tests
+      - name: Run client tests (Jest)
         working-directory: client
         env:
           CI: true
         run: npm test -- --watchAll=false
 
-      # Placeholder for server tests when available
-      # - name: Run server tests
-      #   working-directory: server
-      #   run: npm test
+      - name: Build client
+        working-directory: client
+        env:
+          REACT_APP_API_URL: http://localhost:5000
+        run: npm run build
+
+      - name: Start server
+        working-directory: server
+        env:
+          NODE_ENV: production
+          CONNECTION_URL: mongodb://localhost:27017/expense_e2e
+          JWT_SECRET: test_secret
+          PORT: 5000
+        run: |
+          npm start &
+          sleep 8
+
+      - name: Cypress run
+        working-directory: client
+        env:
+          CYPRESS_baseUrl: http://localhost:3000
+        run: |
+          npx serve -s build -l 3000 &
+          sleep 4
+          npm run cypress:run

@@ -301,6 +301,7 @@ const Navbar = () => {
                         }
                         onClick={() => setIsOpen(false)}
                         title={collapsed ? item.label : ''}
+                        data-testid={item.path === '/dashboard' ? 'nav-dashboard' : undefined}
                       >
                         <i className={item.icon}></i>
                         <span className="link-text">{item.label}</span>
@@ -431,6 +432,7 @@ const Navbar = () => {
             className="quick-action-btn" 
             title="Add Expense"
             onClick={() => navigate('/expenses/add')}
+            data-testid="quick-add-expense"
           >
             <i className="fas fa-plus"></i>
           </button>

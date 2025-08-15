@@ -1,10 +1,21 @@
 {
+  "name": "expense-tracker-monorepo",
+  "private": true,
   "dependencies": {
     "react-webcam": "^7.2.0"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.21",
+    "bestzip": "^2.2.1",
     "postcss": "^8.5.6",
+    "rimraf": "^6.0.1",
+    "shx": "^0.3.4",
     "tailwindcss": "^4.1.11"
+  },
+  "scripts": {
+    "package:prep": "rimraf dist && shx mkdir -p dist",
+    "package:source": "npm run package:prep && bestzip dist/expense-tracker-source.zip client server README.md LICENSE docs -r",
+    "package:client": "npm run package:prep && (cd client && (test -d build || npm run build)) && bestzip dist/expense-tracker-client-build.zip client/build -r",
+    "package:all": "npm run -s package:prep && npm run -s package:source && npm run -s package:client"
   }
 }
