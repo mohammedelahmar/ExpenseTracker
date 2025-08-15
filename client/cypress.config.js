@@ -6,6 +6,9 @@ module.exports = defineConfig({
     defaultCommandTimeout: 10000,
     pageLoadTimeout: 60000,
     retries: { runMode: 2, openMode: 0 },
-    video: false
+  video: false,
+  // Ensure mobile quick action button is visible in CI
+  viewportWidth: 900,
+  viewportHeight: 700
   }
 });
