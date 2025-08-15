@@ -72,11 +72,23 @@ jobs:
           npm start &
           sleep 8
 
+      - name: Wait for API to be ready
+        run: |
+          for i in $(seq 1 40); do
+            if curl -fsS http://localhost:5000/ >/dev/null 2>&1; then
+              echo "API is up"; break; fi; sleep 1; done
+          # Fail if not up after retries
+          curl -fsS http://localhost:5000/
+
       - name: Cypress run
         working-directory: client
         env:
           CYPRESS_baseUrl: http://localhost:3000
         run: |
           npx serve -s build -l 3000 &
-          sleep 4
+          # Wait for client to be ready
+          for i in $(seq 1 40); do
+            if curl -fsS http://localhost:3000/ >/dev/null 2>&1; then
+              echo "Client is up"; break; fi; sleep 1; done
+          curl -fsS http://localhost:3000/
           npm run cypress:run
