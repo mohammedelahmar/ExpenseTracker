@@ -54,8 +54,10 @@ function copyDir(src, dest) {
         console.error('swap-build: copy fallback failed:', copyErr && copyErr.message);
       }
     }
-    // Cleanup tmp either way
-    safeRm(tmpDir);
+    // Cleanup tmp only if swap/copy succeeded
+    if (swapped) {
+      safeRm(tmpDir);
+    }
     if (!swapped) {
       console.warn('swap-build: failed to move/copy build_tmp to build; leaving build_tmp as output');
       console.warn('swap-build: use "npx serve -s build_tmp" or copy build_tmp manually');

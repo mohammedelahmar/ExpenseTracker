@@ -19,6 +19,7 @@ server/tmp/
 package-lock.json
 client/package-lock.json
 server/package-lock.json
+client/build_tmp/
 
 # Ignore system files
 .DS_Store
