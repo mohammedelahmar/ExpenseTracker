@@ -15,7 +15,8 @@ describe('Categories API', () => {
     const create = await request(server)
       .post('/api/categories')
       .set(authHeader(token))
-      .send({ name: 'Food', color: '#ff0000', icon: 'pizza' });
+  // Use a unique, non-default name to avoid clashing with seeded defaults
+  .send({ name: 'MyCategory', color: '#ff0000', icon: 'pizza' });
     expect(create.status).toBe(201);
     const id = create.body._id;
 
@@ -26,8 +27,8 @@ describe('Categories API', () => {
 
     // Get by id
     const get = await request(server).get(`/api/categories/${id}`).set(authHeader(token));
-    expect(get.status).toBe(200);
-    expect(get.body.name).toBe('Food');
+  expect(get.status).toBe(200);
+  expect(get.body.name).toBe('MyCategory');
 
     // Update
     const upd = await request(server)

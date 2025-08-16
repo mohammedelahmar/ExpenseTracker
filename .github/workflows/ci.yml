@@ -17,18 +17,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Use Node.js 18 (with npm cache for client and server)
+      - name: Use Node.js 18
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: npm
-          cache-dependency-path: |
-            server/package-lock.json
-            client/package-lock.json
 
       - name: Install server dependencies
         working-directory: server
-        run: npm ci
+        shell: bash
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
       - name: Run server tests (Jest)
         working-directory: server
@@ -39,7 +37,9 @@ jobs:
 
       - name: Install client dependencies
         working-directory: client
-        run: npm ci
+        shell: bash
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
       - name: Run client tests (Jest)
         working-directory: client
