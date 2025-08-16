@@ -1,3 +1,7 @@
+/// <reference types="cypress" />
+/* eslint-env cypress */
+/* global cy */
+/* eslint-disable no-undef */
 // Critical E2E: register -> login -> dashboard -> add expense -> submit -> verify on dashboard
 
 function uid() {
@@ -15,8 +19,9 @@ describe('Expense end-to-end flow', () => {
   // Ensure mobile layout so quick action is visible in CI; fallback handled below regardless
   cy.viewport(900, 700);
 
-    // Visit landing and go to register
-    cy.visit('/');
+  // Visit landing and go to register
+  cy.intercept('GET', '**/api/*').as('apiAny');
+  cy.visit('/');
     cy.url().should('match', /\/?($|\?)/);
     cy.get('[data-testid="welcome-register"]', { timeout: 20000 })
       .should('exist').and('be.visible')
@@ -30,11 +35,14 @@ describe('Expense end-to-end flow', () => {
     cy.get('input[name="confirmPassword"]', { timeout: 20000 }).should('exist').and('be.visible').type(password);
     cy.get('[data-testid="register-submit"]', { timeout: 20000 }).should('be.visible').click();
 
-    // Dashboard load
-    cy.url({ timeout: 20000 }).should('include', '/dashboard');
+  // Dashboard load
+  cy.url({ timeout: 20000 }).should('include', '/dashboard');
+  // Wait a tick for any initial API calls post-login
+  cy.wait('@apiAny', { timeout: 20000 }).its('response.statusCode').should('be.oneOf', [200, 304]);
 
-    // Navigate to Add Expense: try mobile quick action if visible; otherwise go directly
-    cy.get('body').then(($body) => {
+  // Navigate to Add Expense: set intercept for categories first, then go via button or direct
+  cy.intercept('GET', '**/api/categories').as('getCategories');
+  cy.get('body').then(($body) => {
       const $btn = $body.find('[data-testid="quick-add-expense"]:visible');
       if ($btn.length) {
         cy.get('[data-testid="quick-add-expense"]').click();
@@ -42,10 +50,9 @@ describe('Expense end-to-end flow', () => {
         cy.visit('/expenses/add');
       }
     });
-    cy.url({ timeout: 20000 }).should('include', '/expenses/add');
+  cy.url({ timeout: 20000 }).should('include', '/expenses/add');
 
     // Fill expense form
-    cy.intercept('GET', '**/api/categories').as('getCategories');
     cy.wait('@getCategories', { timeout: 20000 });
     cy.intercept('POST', '**/api/expenses').as('createExpense');
     cy.get('[data-testid="expense-amount"]', { timeout: 20000 }).should('exist').and('be.visible').type('19.99');
@@ -56,10 +63,10 @@ describe('Expense end-to-end flow', () => {
       cy.wrap($sel).select(value, { force: true });
     });
     cy.get('[data-testid="expense-submit"]', { timeout: 20000 }).should('be.visible').click();
-    cy.wait('@createExpense', { timeout: 20000 }).its('response.statusCode').should('be.oneOf', [200, 201]);
+  cy.wait('@createExpense', { timeout: 20000 }).its('response.statusCode').should('be.oneOf', [200, 201]);
 
     // Verify presence in dashboard recent expenses (navigate if form does not auto-redirect)
-    cy.visit('/dashboard');
+  cy.visit('/dashboard');
     cy.get('[data-testid="recent-expenses"]', { timeout: 20000 }).should('exist').and('be.visible');
     cy.contains(desc, { timeout: 20000 }).should('be.visible');
   });

@@ -9,7 +9,9 @@
   "dev": "nodemon app.js",
   "test": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
   "test:watch": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --watchAll",
-  "test:ci": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --coverage --runInBand"
+  "test:ci": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --coverage --runInBand",
+  "seed": "node scripts/seed.js",
+  "seed:http": "node scripts/seed-http.js"
   },
   "keywords": [],
   "author": "",

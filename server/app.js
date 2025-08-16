@@ -55,6 +55,14 @@ app.get('/', (req, res) => {
   res.send('API is running...');
 });
 
+// Lightweight health check endpoint used by CI to ensure server and DB are ready
+import mongoose from 'mongoose';
+app.get('/api/health', (req, res) => {
+  const states = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+  const state = states[mongoose.connection.readyState] || 'unknown';
+  res.json({ status: 'ok', db: state });
+});
+
 // Note: dev-only test routes have been removed for production
 
 // Mount route files

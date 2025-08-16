@@ -1,5 +1,6 @@
 //Auth logic (signup, login)
 import User from '../models/User.js';
+import Category from '../models/Category.js';
 import asyncHandler from 'express-async-handler';
 import generateToken from '../utils/generateToken.js';
 import bcrypt from 'bcryptjs'; // Add this import
@@ -31,7 +32,28 @@ const registerUser = asyncHandler(async(req, res) => {
         password: hashedPassword
     });
 
-    if(user) {
+  if(user) {
+    // Create default categories for the new user (non-blocking)
+    (async () => {
+      try {
+        const defaults = [
+          { name: 'Food', color: '#FF7043', icon: 'utensils' },
+          { name: 'Transport', color: '#42A5F5', icon: 'car' },
+          { name: 'Other', color: '#9E9E9E', icon: 'tag' },
+        ];
+        const ops = defaults.map((c) => ({
+          updateOne: {
+            filter: { user: user._id, name: c.name },
+            update: { $setOnInsert: { ...c, user: user._id, isDefault: true } },
+            upsert: true,
+          }
+        }));
+        await Category.bulkWrite(ops, { ordered: false });
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('Default categories creation skipped:', e.message);
+      }
+    })();
         res.status(201).json({
             _id: user._id,
             username: user.username,

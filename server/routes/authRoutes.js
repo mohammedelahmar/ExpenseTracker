@@ -27,4 +27,7 @@ router.put('/reset-password/:resetToken', resetPassword);
 
 // Removed dev-only test email route for production
 
+// Optional: lightweight health for auth-only concerns (no DB ops)
+// Kept minimal; full health is at /api/health in app.js
+
 export default router;

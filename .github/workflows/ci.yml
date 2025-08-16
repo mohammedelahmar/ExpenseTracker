@@ -5,20 +5,13 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
-    services:
-      mongo:
-        image: mongo:6
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd="mongosh --eval 'db.adminCommand(\"ping\")'"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout repository
@@ -41,7 +34,6 @@ jobs:
         working-directory: server
         env:
           NODE_ENV: test
-          CONNECTION_URL: mongodb://localhost:27017/expense_ci
           JWT_SECRET: test_secret
         run: npm run test:ci
 
@@ -65,30 +57,44 @@ jobs:
         working-directory: server
         env:
           NODE_ENV: production
-          CONNECTION_URL: mongodb://localhost:27017/expense_e2e
+          USE_IN_MEMORY_DB: true
           JWT_SECRET: test_secret
           PORT: 5000
+        shell: bash
         run: |
           npm start &
-          sleep 8
+          echo "Server starting in background"
+          sleep 2
 
-      - name: Wait for API to be ready
+      - name: Wait for API and DB health
+        shell: bash
         run: |
-          for i in $(seq 1 40); do
-            if curl -fsS http://localhost:5000/ >/dev/null 2>&1; then
-              echo "API is up"; break; fi; sleep 1; done
-          # Fail if not up after retries
-          curl -fsS http://localhost:5000/
+          node -e "let i=0;const wait=async()=>{while(i++<120){try{const r=await fetch('http://localhost:5000/api/health');if(r.ok){const t=await r.json();if(t.status==='ok'&&t.db==='connected'){console.log('API + DB ready');process.exit(0);}}}catch(e){}await new Promise(r=>setTimeout(r,1000));}console.error('API not ready');process.exit(1)};wait()"
 
-      - name: Cypress run
+      - name: Seed database for E2E (via API)
+        working-directory: server
+        env:
+          NODE_ENV: production
+          USE_IN_MEMORY_DB: true
+        run: node scripts/seed-http.js
+
+      - name: Start client static server
+        working-directory: client
+        shell: bash
+        run: |
+          npx serve -s build -l 3000 &
+          echo "Client starting in background"
+          sleep 1
+
+      - name: Wait for client to be ready
+        shell: bash
+        run: |
+          node -e "let i=0;const wait=async()=>{while(i++<120){try{const r=await fetch('http://localhost:3000/');if(r.ok){console.log('Client ready');process.exit(0);}}catch(e){}await new Promise(r=>setTimeout(r,1000));}console.error('Client not ready');process.exit(1)};wait()"
+
+      - name: Cypress run (headless)
         working-directory: client
         env:
           CYPRESS_baseUrl: http://localhost:3000
-        run: |
-          npx serve -s build -l 3000 &
-          # Wait for client to be ready
-          for i in $(seq 1 40); do
-            if curl -fsS http://localhost:3000/ >/dev/null 2>&1; then
-              echo "Client is up"; break; fi; sleep 1; done
-          curl -fsS http://localhost:3000/
-          npm run cypress:run
+        run: npm run cypress:run
+
+  # Cypress runs headlessly by default; matrix covers macOS/Windows/Linux.
