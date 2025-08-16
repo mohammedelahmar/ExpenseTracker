@@ -22,16 +22,17 @@
     "react-bootstrap": "^2.10.9",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.1.0",
-  "react-webcam": "^7.2.0",
-  "react-router-dom": "^6.26.2",
+    "react-router-dom": "^6.26.2",
     "react-scripts": "5.0.1",
     "react-toastify": "^11.0.5",
+    "react-webcam": "^7.2.0",
     "sweetalert2": "^11.21.2",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "prebuild": "node scripts/clean-build.js build_tmp && node scripts/clean-build.js build",
+  "build": "cross-env BUILD_PATH=build_tmp react-scripts build && node scripts/swap-build.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "cypress:open": "cypress open",
@@ -57,6 +58,7 @@
   },
   "devDependencies": {
     "autoprefixer": "^10.4.21",
+    "cross-env": "^10.0.0",
     "cypress": "^13.15.2",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17"
