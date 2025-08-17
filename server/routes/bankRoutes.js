@@ -6,7 +6,8 @@ import {
     syncTransactions,
     removeLinkedAccount,
     createConnectSession,
-    handleCallback
+    handleCallback,
+    fetchTransactions
 } from '../controllers/bankIntegrationController.js';
 import { protect } from '../middleware/auth.js';
 
@@ -22,5 +23,6 @@ router.post('/sync', syncTransactions);
 router.delete('/accounts/:id', removeLinkedAccount);
 router.post('/create-session', createConnectSession);
 router.post('/callback', handleCallback);
+router.post('/fetch-transactions', fetchTransactions);
 
 export default router;

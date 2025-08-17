@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import bankService from '../../services/bankService';
 
-const LinkedAccountsList = ({ refresh }) => {
+const LinkedAccountsList = ({ refresh, refreshTrigger }) => {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -23,7 +23,7 @@ const LinkedAccountsList = ({ refresh }) => {
     };
 
     fetchAccounts();
-  }, [refresh]);
+  }, [refresh, refreshTrigger]);
 
   const handleSync = async () => {
     try {
@@ -84,10 +84,10 @@ const LinkedAccountsList = ({ refresh }) => {
         <p>No bank accounts linked yet. Connect an account to get started.</p>
       ) : (
         <div className="accounts-list">
-          {accounts.map(account => (
+      {accounts.map(account => (
             <div key={account._id} className="account-card">
               <div className="account-info">
-                <h4>{account.institutionName}</h4>
+        <h4>{account.institutionName || account.bankName || 'Bank'}</h4>
                 <p>{account.accountName} • {account.accountType}</p>
                 <small>Last synced: {new Date(account.lastSync).toLocaleString()}</small>
               </div>

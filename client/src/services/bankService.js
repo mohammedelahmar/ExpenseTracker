@@ -1,6 +1,17 @@
 import api from './api';
 
 const bankService = {
+  // Create Plaid link token
+  createPlaidLinkToken: async () => {
+    const response = await api.post('/bank/create-link-token');
+    return response.data;
+  },
+
+  // Exchange Plaid public token
+  exchangePlaidPublicToken: async (publicToken, metadata) => {
+    const response = await api.post('/bank/exchange-token', { publicToken, metadata });
+    return response.data;
+  },
   // Get a Salt Edge connect session
   getConnectSession: async () => {
   const response = await api.post('/bank/create-session');

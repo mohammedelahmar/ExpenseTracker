@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import SaltEdgeConnectButton from '../components/bank/SaltEdgeConnectButton';
+import PlaidLinkButton from '../components/bank/PlaidLinkButton';
 import LinkedAccountsList from '../components/bank/LinkedAccountsList';
 import '../styles/BankConnections.css';
 
@@ -24,10 +25,9 @@ const BankConnections = () => {
     <div className="bank-connections-page">
       <div className="page-header">
         <h1>Bank Connections</h1>
-        <div>
-          <SaltEdgeConnectButton
-            onExit={handleConnectionExit}
-          />
+        <div style={{ display: 'flex', gap: 12 }}>
+          <SaltEdgeConnectButton onExit={handleConnectionExit} />
+          <PlaidLinkButton onLinked={() => setRefreshList(v => v + 1)} onExit={handleConnectionExit} />
         </div>
       </div>
 

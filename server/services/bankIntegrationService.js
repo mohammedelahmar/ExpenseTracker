@@ -1,4 +1,5 @@
 import saltEdgeClient from '../config/saltedge.js';
+import plaidClient from '../config/plaid.js';
 import BankAccount from '../models/BankAccount.js';
 import Expense from '../models/Expense.js';
 import moment from 'moment-timezone';
@@ -12,7 +13,7 @@ export const createLinkToken = async (userId) => {
       },
       client_name: 'Expense Tracker',
       products: ['transactions'],
-      country_codes: ['US'], // Only use US for sandbox testing
+  country_codes: ['US'], // Sandbox/test default
       language: 'en',
     };
     
@@ -44,13 +45,14 @@ export const exchangePublicToken = async (publicToken, metadata, userId) => {
     for (const account of accountsResponse.data.accounts) {
       const bankAccount = await BankAccount.create({
         user: userId,
-        institutionId: metadata.institution.id,
-        institutionName: metadata.institution.name,
-        accountId: account.account_id,
-        accountName: account.name,
+        provider: 'plaid',
+        bankName: metadata?.institution?.name || 'Plaid',
+        accountName: account.name || account.official_name || 'Account',
         accountType: account.type,
-        accessToken: accessToken,
-        itemId: itemId
+        accountNumber: 'xxxx',
+        plaidAccessToken: accessToken,
+        plaidItemId: itemId,
+        plaidAccountId: account.account_id,
       });
       
       accounts.push({
@@ -74,8 +76,8 @@ export const syncTransactions = async (userId, accessToken = null) => {
   try {
     // If no access token provided, sync all active accounts for user
     const accounts = accessToken 
-      ? await BankAccount.find({ user: userId, accessToken, isActive: true }) 
-      : await BankAccount.find({ user: userId, isActive: true });
+      ? await BankAccount.find({ user: userId, plaidAccessToken: accessToken, isActive: true }) 
+      : await BankAccount.find({ user: userId, provider: 'plaid', isActive: true });
     
     if (accounts.length === 0) return { added: 0 };
     
@@ -87,20 +89,21 @@ export const syncTransactions = async (userId, accessToken = null) => {
       const endDate = moment().format('YYYY-MM-DD');
       
       const transactionsResponse = await plaidClient.transactionsGet({
-        access_token: account.accessToken,
+        access_token: account.plaidAccessToken,
         start_date: startDate,
         end_date: endDate,
       });
       
       // Process each transaction
       for (const transaction of transactionsResponse.data.transactions) {
-        // Skip pending transactions or deposits (positive amounts)
+        // Skip pending transactions or deposits (non-expenses)
+        // Plaid amounts are positive for debits, negative for credits.
         if (transaction.pending || transaction.amount <= 0) continue;
         
         // Check if transaction already exists to avoid duplicates
         const existingExpense = await Expense.findOne({
           user: userId,
-          'metadata.transactionId': transaction.transaction_id
+          transactionId: transaction.transaction_id,
         });
         
         if (!existingExpense) {
@@ -109,13 +112,12 @@ export const syncTransactions = async (userId, accessToken = null) => {
             user: userId,
             date: new Date(transaction.date),
             amount: transaction.amount,
-            category: determineCategory(transaction.category),
+            category: determineCategory(Array.isArray(transaction.category) ? transaction.category.join(' ').toLowerCase() : (transaction.category || '')),
             description: transaction.name,
-            metadata: {
-              transactionId: transaction.transaction_id,
-              accountId: account._id,
-              importMethod: 'plaid'
-            }
+            bankAccountId: account._id,
+            transactionId: transaction.transaction_id,
+            importMethod: 'plaid',
+            metadata: { raw: transaction },
           });
           
           addedCount++;
@@ -136,19 +138,16 @@ export const syncTransactions = async (userId, accessToken = null) => {
 // Create a connect session for connecting bank accounts
 export const createConnectSession = async (userId, userEmail) => {
   try {
-    
-    // Get or create Salt Edge customer to get the numeric ID
-    const customer = await createSaltEdgeCustomer(userId, userEmail);
-    
+    // Ensure we have a Salt Edge customer and get its real ID
+    const { saltEdgeCustomerId } = await createSaltEdgeCustomer(userId, userEmail);
+
     // Ensure HTTPS for production or use redirects for localhost
-  const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
     const returnTo = `${clientUrl}/bank-connections/callback`;
-    
-    
-    
+
     const response = await saltEdgeClient.post('/connect_sessions/create', {
       data: {
-        customer_id: customer.numericId, // Use the numeric ID here
+        customer_id: saltEdgeCustomerId,
         consent: {
           scopes: ["account_details", "transactions_details"]
         },
@@ -184,6 +183,7 @@ export const handleConnectionCallback = async (connectionId, userId) => {
     for (const account of accounts) {
       const newAccount = new BankAccount({
         user: userId,
+        provider: 'saltedge',
         bankName: connection.provider_name,
         accountName: account.name,
         accountType: account.nature || 'Unknown',
@@ -228,19 +228,22 @@ export const fetchTransactions = async (accountId, userId) => {
       // Skip deposits
       if (transaction.amount > 0) continue;
       
-      const expense = new Expense({
-        user: userId,
-        title: transaction.description,
-        amount: Math.abs(transaction.amount),
-        date: moment(transaction.made_on).toDate(),
-        category: determineCategory(transaction.category),
-        description: transaction.description,
-        bankAccountId: accountId,
-        transactionId: transaction.id
-      });
-      
-      await expense.save();
-      savedTransactions.push(expense);
+      // Upsert by user + transactionId to avoid duplicates
+      const doc = await Expense.findOneAndUpdate(
+        { user: userId, transactionId: transaction.id },
+        {
+          user: userId,
+          bankAccountId: accountId,
+          amount: Math.abs(transaction.amount),
+          date: moment(transaction.made_on).toDate(),
+          category: determineCategory(transaction.category || ''),
+          description: transaction.description || 'Transaction',
+          importMethod: 'saltedge',
+          metadata: { raw: transaction },
+        },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      );
+      savedTransactions.push(doc);
     }
     
     return savedTransactions;
@@ -270,7 +273,7 @@ function determineCategory(category) {
     'housing': 'Housing'
   };
   
-  const lowerCategory = category.toLowerCase();
+  const lowerCategory = category.toString().toLowerCase();
   
   for (const [key, value] of Object.entries(categoryMap)) {
     if (lowerCategory.includes(key)) {
@@ -284,35 +287,35 @@ function determineCategory(category) {
 // Add to bankIntegrationService.js
 export const createSaltEdgeCustomer = async (userId, userEmail) => {
   try {
-    
-    // Generate a numeric identifier from the ObjectId
-    // Simple approach: use last 8 digits of ObjectId converted to integer
-    const numericId = parseInt(userId.toString().slice(-8), 16);
-    
-    // Salt Edge requires email for customers
-    const response = await saltEdgeClient.post('/customers', {
+    const identifier = `user-${userId.toString()}`;
+
+    // Try to create the customer first
+    const createResp = await saltEdgeClient.post('/customers', {
       data: {
-        identifier: `user-${userId.toString()}`, // Use string identifier for reference
-        email: userEmail || `user-${userId}@example.com` // Fallback if email is not available
+        identifier,
+        email: userEmail || `user-${userId}@example.com`
       }
     });
-    
-    
-    
-    // Store the mapping between your user and the Salt Edge customer ID
-    // This could be saved in your User model or a separate mapping table
+
     return {
-      saltEdgeCustomerId: response.data.data.id,
-      numericId
+      saltEdgeCustomerId: createResp.data?.data?.id,
     };
   } catch (error) {
-    // If customer already exists, we need to retrieve the actual Salt Edge customer ID
+    // If customer already exists, retrieve by identifier
     if (error.response?.status === 409 || 
-        error.response?.data?.error?.message?.includes('already exists')) {
-      
-      // Generate the same numeric ID for consistency
-      const numericId = parseInt(userId.toString().slice(-8), 16);
-      return { saltEdgeCustomerId: numericId, numericId };
+        error.response?.data?.error?.message?.toLowerCase?.().includes('already exists')) {
+      const identifier = `user-${userId.toString()}`;
+      try {
+        const searchResp = await saltEdgeClient.get('/customers', {
+          params: { identifier }
+        });
+        const existing = searchResp.data?.data?.[0];
+        if (existing?.id) {
+          return { saltEdgeCustomerId: existing.id };
+        }
+      } catch (e) {
+        // fall through to throw
+      }
     }
     throw error;
   }
