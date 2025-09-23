@@ -13,9 +13,9 @@
     "tailwindcss": "^4.1.11"
   },
   "scripts": {
-    "package:prep": "rimraf dist && shx mkdir -p dist",
-  "package:source": "bestzip dist/expense-tracker-source.zip client/src client/public client/package.json client/README.md client/tailwind.config.js client/postcss.config.js client/cypress.config.js client/cypress server README.md LICENSE docs -r",
+  "package:prep": "rimraf dist && shx mkdir -p dist",
+  "package:source": "node scripts/package-source.js",
   "package:client": "node scripts/zip-client-build.js",
-    "package:all": "npm run -s package:prep && npm run -s package:source && npm run -s package:client"
+  "package:all": "npm run -s package:prep && npm run -s package:source && npm run -s package:client"
   }
 }
