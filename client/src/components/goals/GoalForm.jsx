@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import goalService from '../../services/goalService';
-import '../../styles/GoalForm.css';
+import { 
+  PiggyBank, Home, Car, GraduationCap, Plane, 
+  Laptop, Heart, Gift, BookOpen, Umbrella, 
+  DollarSign, Calendar, Tag, FileText, Save, X 
+} from 'lucide-react';
+// import '../../styles/GoalForm.css'; // Removed
 
 const GoalForm = ({ editGoal = null, onSubmitSuccess }) => {
   const navigate = useNavigate();
@@ -17,11 +22,21 @@ const GoalForm = ({ editGoal = null, onSubmitSuccess }) => {
     icon: 'piggy-bank'
   });
   
-  // Icons available for selection
-  const availableIcons = [
-    'piggy-bank', 'home', 'car', 'graduation-cap', 'plane', 
-    'laptop', 'heart', 'gift', 'book', 'umbrella'
-  ];
+  // Icons mapping
+  const iconMap = {
+    'piggy-bank': <PiggyBank size={24} />,
+    'home': <Home size={24} />,
+    'car': <Car size={24} />,
+    'graduation-cap': <GraduationCap size={24} />,
+    'plane': <Plane size={24} />,
+    'laptop': <Laptop size={24} />,
+    'heart': <Heart size={24} />,
+    'gift': <Gift size={24} />,
+    'book': <BookOpen size={24} />,
+    'umbrella': <Umbrella size={24} />
+  };
+
+  const availableIcons = Object.keys(iconMap);
 
   // If editing an goal, populate form with goal data
   useEffect(() => {
@@ -89,7 +104,7 @@ const GoalForm = ({ editGoal = null, onSubmitSuccess }) => {
       
       // Redirect to goals page
       navigate('/goals');
-  } catch (err) {
+    } catch (err) {
       setLoading(false);
       setError(
         err.message || 'An error occurred. Please try again.'
@@ -102,19 +117,22 @@ const GoalForm = ({ editGoal = null, onSubmitSuccess }) => {
   };
 
   return (
-    <div className="goal-form-container card">
-      <h2>{editGoal ? 'Edit Financial Goal' : 'Add New Financial Goal'}</h2>
+    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
       
-      {error && <div className="alert alert-danger">{error}</div>}
+      {error && (
+        <div className="mb-6 p-4 bg-rose-50 border-l-4 border-rose-500 text-rose-700 rounded-r-lg">
+          {error}
+        </div>
+      )}
       
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="name">Goal Name</label>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label htmlFor="name" className="block text-sm font-bold text-gray-700 mb-2">Goal Name</label>
           <input
             type="text"
             id="name"
             name="name"
-            className="form-control"
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all placeholder:text-gray-400"
             value={formData.name}
             onChange={handleChange}
             required
@@ -122,105 +140,138 @@ const GoalForm = ({ editGoal = null, onSubmitSuccess }) => {
           />
         </div>
         
-        <div className="form-group">
-          <label htmlFor="targetAmount">Target Amount ($)</label>
-          <input
-            type="number"
-            step="0.01"
-            id="targetAmount"
-            name="targetAmount"
-            className="form-control"
-            value={formData.targetAmount}
-            onChange={handleChange}
-            required
-            min="0.01"
-            placeholder="5000.00"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label htmlFor="targetAmount" className="block text-sm font-bold text-gray-700 mb-2">Target Amount ($)</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <DollarSign className="text-gray-400 h-5 w-5" />
+              </div>
+              <input
+                type="number"
+                step="0.01"
+                id="targetAmount"
+                name="targetAmount"
+                className="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all placeholder:text-gray-400"
+                value={formData.targetAmount}
+                onChange={handleChange}
+                required
+                min="0.01"
+                placeholder="5000.00"
+              />
+            </div>
+          </div>
+          
+          {editGoal && (
+            <div>
+              <label htmlFor="currentAmount" className="block text-sm font-bold text-gray-700 mb-2">Current Amount ($)</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <DollarSign className="text-gray-400 h-5 w-5" />
+                </div>
+                <input
+                  type="number"
+                  step="0.01"
+                  id="currentAmount"
+                  name="currentAmount"
+                  className="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all placeholder:text-gray-400"
+                  value={formData.currentAmount}
+                  onChange={handleChange}
+                  required
+                  min="0"
+                />
+              </div>
+            </div>
+          )}
+          
+          <div>
+            <label htmlFor="targetDate" className="block text-sm font-bold text-gray-700 mb-2">Target Date</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Calendar className="text-gray-400 h-5 w-5" />
+              </div>
+              <input
+                type="date"
+                id="targetDate"
+                name="targetDate"
+                className="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-gray-600"
+                value={formData.targetDate}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
         </div>
         
-        {editGoal && (
-          <div className="form-group">
-            <label htmlFor="currentAmount">Current Amount ($)</label>
+        <div>
+          <label htmlFor="category" className="block text-sm font-bold text-gray-700 mb-2">Category (Optional)</label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Tag className="text-gray-400 h-5 w-5" />
+            </div>
             <input
-              type="number"
-              step="0.01"
-              id="currentAmount"
-              name="currentAmount"
-              className="form-control"
-              value={formData.currentAmount}
+              type="text"
+              id="category"
+              name="category"
+              className="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all placeholder:text-gray-400"
+              value={formData.category}
               onChange={handleChange}
-              required
-              min="0"
+              placeholder="e.g., Savings, Travel, Home"
             />
           </div>
-        )}
-        
-        <div className="form-group">
-          <label htmlFor="targetDate">Target Date</label>
-          <input
-            type="date"
-            id="targetDate"
-            name="targetDate"
-            className="form-control"
-            value={formData.targetDate}
-            onChange={handleChange}
-            required
-          />
         </div>
         
-        <div className="form-group">
-          <label htmlFor="category">Category (Optional)</label>
-          <input
-            type="text"
-            id="category"
-            name="category"
-            className="form-control"
-            value={formData.category}
-            onChange={handleChange}
-            placeholder="e.g., Savings, Travel, Home"
-          />
+        <div>
+          <label htmlFor="description" className="block text-sm font-bold text-gray-700 mb-2">Description (Optional)</label>
+          <div className="relative">
+            <div className="absolute top-3 left-3 pointer-events-none">
+              <FileText className="text-gray-400 h-5 w-5" />
+            </div>
+            <textarea
+              id="description"
+              name="description"
+              className="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all placeholder:text-gray-400 min-h-[100px]"
+              value={formData.description}
+              onChange={handleChange}
+              rows="3"
+              placeholder="Describe your financial goal..."
+            ></textarea>
+          </div>
         </div>
         
-        <div className="form-group">
-          <label htmlFor="description">Description (Optional)</label>
-          <textarea
-            id="description"
-            name="description"
-            className="form-control"
-            value={formData.description}
-            onChange={handleChange}
-            rows="3"
-            placeholder="Describe your financial goal..."
-          ></textarea>
-        </div>
-        
-        <div className="form-group">
-          <label>Choose an Icon</label>
-          <div className="icon-selector">
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-3">Choose an Icon</label>
+          <div className="grid grid-cols-5 gap-3 sm:gap-4">
             {availableIcons.map((icon) => (
               <div
                 key={icon}
-                className={`icon-option ${formData.icon === icon ? 'selected' : ''}`}
+                className={`
+                  aspect-square flex items-center justify-center rounded-xl cursor-pointer transition-all duration-200
+                  ${formData.icon === icon 
+                    ? 'bg-primary-50 border-2 border-primary-500 text-primary-600 shadow-md scale-105' 
+                    : 'bg-gray-50 border border-gray-200 text-gray-400 hover:bg-gray-100 hover:border-gray-300 hover:text-gray-600'
+                  }
+                `}
                 onClick={() => selectIcon(icon)}
               >
-                <i className={`fas fa-${icon}`}></i>
+                {iconMap[icon]}
               </div>
             ))}
           </div>
         </div>
         
-        <div className="form-actions">
+        <div className="flex gap-4 pt-6 border-t border-gray-100 mt-8">
           <button 
             type="submit" 
-            className="btn btn-primary"
+            className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white font-bold rounded-xl hover:bg-primary-700 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed"
             disabled={loading}
           >
-            {loading ? 'Saving...' : (editGoal ? 'Update Goal' : 'Create Goal')}
+            {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><Save size={20} /> {editGoal ? 'Update Goal' : 'Create Goal'}</>}
           </button>
           
           <button 
             type="button" 
-            className="btn btn-secondary"
+            className="px-6 py-3 bg-white text-gray-700 font-bold rounded-xl border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
             onClick={() => navigate('/goals')}
           >
             Cancel

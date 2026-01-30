@@ -26,7 +26,7 @@ import BankConnections from './pages/BankConnections'; // Add this import
 import ConnectCallback from './components/bank/ConnectCallback'; // Add this import
 import ForgotPassword from './pages/ForgotPassword'; // Add this import
 import ResetPassword from './pages/ResetPassword'; // Add this import
-import './styles/analytics.css';
+
 
 function App() {
   const { user, isLoading } = useAuth();
@@ -60,7 +60,7 @@ function App() {
       {/* Conditionally render Navbar */}
       {!shouldHideNavbar && <Navbar />}
       
-      <div className={shouldHideNavbar ? "" : "container"}>
+      <div className={shouldHideNavbar ? "" : "container mx-auto px-4 py-6"}>
         <AnalyticsProvider> {/* Wrap routes that need analytics */}
           <Routes>
             {/* Public Route - Welcome page */}

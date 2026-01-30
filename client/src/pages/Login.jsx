@@ -3,8 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import authService from '../services/authService';
 import { GoogleLogin } from '@react-oauth/google';
-import { ArrowLeft } from 'lucide-react';
-import '../styles/Login.css';
+import { ArrowLeft, Mail, Lock, AlertCircle, LogIn } from 'lucide-react';
+// import '../styles/Login.css'; // Removed
 
 const Login = () => {
   const [loading, setLoading] = useState(false);
@@ -47,15 +47,10 @@ const Login = () => {
     setError('');
 
     try {
-      // Use authService instead of direct axios call
       const userData = await authService.login(formData.email, formData.password);
-      
-      // Store user data in context
       login(userData);
-      
-      // Redirect to dashboard
       navigate('/dashboard');
-  } catch (err) {
+    } catch (err) {
       setError(err.message || 'Invalid credentials. Please try again.');
     } finally {
       setLoading(false);
@@ -66,12 +61,10 @@ const Login = () => {
     try {
       setLoading(true);
       setError('');
-      
       const userData = await authService.googleLogin(credentialResponse.credential);
-      
       login(userData);
       navigate('/dashboard');
-  } catch (err) {
+    } catch (err) {
       setError(err.message || 'Google sign-in failed. Please try again.');
     } finally {
       setLoading(false);
@@ -83,89 +76,126 @@ const Login = () => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-form-container">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-xl">
         {/* Go Back Button */}
-        <div className="go-back-container">
-          <Link to="/" className="go-back-btn">
-            <ArrowLeft size={16} />
-            <span>Back to Home</span>
+        <div>
+          <Link to="/" className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors mb-6">
+            <ArrowLeft size={16} className="mr-2" />
+            Back to Home
           </Link>
+          
+          <div className="text-center">
+            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Welcome Back</h1>
+            <p className="mt-2 text-sm text-gray-600">
+              Sign in to manage your expenses
+            </p>
+          </div>
         </div>
         
-        <div className="auth-form-header">
-          <h1>Welcome Back</h1>
-          <p>Sign in to your account</p>
-        </div>
+        {error && (
+          <div className="rounded-md bg-red-50 p-4 border border-red-200">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <AlertCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">{error}</h3>
+              </div>
+            </div>
+          </div>
+        )}
         
-        {error && <div className="alert alert-danger">{error}</div>}
-        
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <label htmlFor="email">Email Address</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              className="form-control"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-              placeholder="Enter your email"
-              autoComplete="email"
-            />
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email Address</label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                  placeholder="you@example.com"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </div>
           </div>
-          
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              className="form-control"
-              value={formData.password}
-              onChange={handleInputChange}
-              required
-              minLength="6"
-              placeholder="Enter your password"
-              autoComplete="current-password"
-            />
+
+          <div className="flex items-center justify-end">
+            <div className="text-sm">
+              <Link to="/forgot-password" className="font-medium text-primary-600 hover:text-primary-500">
+                Forgot password?
+              </Link>
+            </div>
           </div>
-          
-          <div className="form-group forgot-password">
-            <Link to="/forgot-password">Forgot password?</Link>
+
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              data-testid="login-submit"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-70 disabled:cursor-not-allowed shadow-md transition-all hover:shadow-lg"
+            >
+              <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+                <LogIn className="h-5 w-5 text-primary-300 group-hover:text-primary-200" aria-hidden="true" />
+              </span>
+              {loading ? 'Signing in...' : 'Sign in'}
+            </button>
           </div>
-          
-          <button 
-            type="submit" 
-            className="btn btn-primary btn-block"
-            disabled={loading}
-            data-testid="login-submit"
-          >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
         </form>
         
-        <div className="auth-divider">
-          <span>OR</span>
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white text-gray-500">Or continue with</span>
+          </div>
         </div>
         
-        <div className="google-auth-container">
+        <div className="google-auth-container w-full">
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
             onError={handleGoogleError}
             text="signin_with"
             shape="rectangular"
-            width="100%"
+            width="100%" // React Google Login component handles width but might need wrapper constraints
             useOneTap={false}
-            cookiePolicy={'single_host_origin'}
           />
         </div>
         
-        <div className="auth-form-footer">
-          <p>
-            Don't have an account?
-            <Link to="/register" className="toggle-form-btn">
+        <div className="text-center mt-6">
+          <p className="text-sm text-gray-600">
+            Don't have an account?{' '}
+            <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500 transition-colors">
               Create account
             </Link>
           </p>

@@ -1,7 +1,34 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import '../styles/Navbar.css';
+import { 
+  Home, 
+  CreditCard, 
+  BarChart2, 
+  PieChart, 
+  Tags, 
+  Target, 
+  RefreshCw, // Subscription icon alternative
+  User, 
+  Settings, 
+  HelpCircle, 
+  LogOut,
+  Menu,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  LogIn,
+  UserPlus,
+  TrendingUp, // Reports icon
+  Plus
+} from 'lucide-react';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs) {
+  return twMerge(clsx(inputs));
+}
 
 const Navbar = () => {
   const [collapsed, setCollapsed] = useState(() => {
@@ -12,93 +39,94 @@ const Navbar = () => {
       return false;
     }
   });
-  
+
   const [isOpen, setIsOpen] = useState(false); // mobile drawer
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  // Removed unused isScrolled/isHidden state
-  
+
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const userMenuRef = useRef(null);
   const sidebarRef = useRef(null);
-  //
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const touchMoved = useRef(false);
 
-  // Enhanced navigation items with better organization (removed income and budget)
   const navigationItems = [
-    { 
-      path: '/dashboard', 
-      label: 'Dashboard', 
-      icon: 'fas fa-home',
+    {
+      path: '/dashboard',
+      label: 'Dashboard',
+      icon: Home,
       category: 'main'
     },
-    { 
-      path: '/expenses', 
-      label: 'Expenses', 
-      icon: 'fas fa-credit-card',
+    {
+      path: '/expenses',
+      label: 'Expenses',
+      icon: CreditCard,
       category: 'main'
     },
-    { 
-      path: '/reports', 
-      label: 'Reports', 
-      icon: 'fas fa-chart-line',
+    {
+      path: '/reports',
+      label: 'Reports',
+      icon: TrendingUp, // Changed from chart-line to TrendingUp
       category: 'analytics'
     },
-    { 
-      path: '/analytics', 
-      label: 'Analytics', 
-      icon: 'fas fa-chart-pie',
+    {
+      path: '/analytics',
+      label: 'Analytics',
+      icon: PieChart,
       category: 'analytics'
     },
-    { 
-      path: '/categories', 
-      label: 'Categories', 
-      icon: 'fas fa-tags',
+    {
+      path: '/categories',
+      label: 'Categories',
+      icon: Tags,
       category: 'settings'
     },
-    { 
-      path: '/goals', 
-      label: 'Goals', 
-      icon: 'fas fa-bullseye',
+    {
+      path: '/goals',
+      label: 'Goals',
+      icon: Target,
       category: 'planning'
     },
-    { 
-      path: '/subscriptions', 
-      label: 'Subscriptions', 
-      icon: 'fas fa-sync-alt',
+    {
+      path: '/subscriptions',
+      label: 'Subscriptions',
+      icon: RefreshCw,
       category: 'planning'
     }
   ];
 
-  // Apply body class for layout shift
+  // Apply body class for layout padding adjustment
   useEffect(() => {
-    document.body.classList.add('with-sidebar');
-    return () => document.body.classList.remove('with-sidebar');
-  }, []);
+    const updateLayout = () => {
+      document.body.classList.remove('pl-[72px]', 'pl-[280px]');
+      if (window.innerWidth >= 992) {
+        document.body.classList.add(collapsed ? 'pl-[72px]' : 'pl-[280px]');
+      }
+    };
+    
+    updateLayout();
+    window.addEventListener('resize', updateLayout);
+    return () => {
+      window.removeEventListener('resize', updateLayout);
+      document.body.classList.remove('pl-[72px]', 'pl-[280px]');
+    };
+  }, [collapsed]);
 
-  // Persist collapsed state
   useEffect(() => {
     try {
       localStorage.setItem('sidebarCollapsed', JSON.stringify(collapsed));
-      document.body.classList.toggle('sidebar-collapsed', collapsed);
-    } catch (error) {
-            // ignore storage errors
-    }
+    } catch (error) {}
   }, [collapsed]);
 
-  // Removed unused scroll-hide behavior to prevent extra reflows
-
-  // Close menus on route change
   useEffect(() => {
     setIsOpen(false);
     setUserMenuOpen(false);
   }, [location]);
 
-  // Close user menu on outside click
+  // Click outside listener
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
@@ -116,11 +144,7 @@ const Navbar = () => {
     if (userMenuOpen || isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('keydown', handleKeyDown);
-      
-      // Prevent body scroll when mobile menu is open
-      if (isOpen) {
-        document.body.style.overflow = 'hidden';
-      }
+      if (isOpen) document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
     }
@@ -132,25 +156,23 @@ const Navbar = () => {
     };
   }, [userMenuOpen, isOpen]);
 
-  // Handle resize events for better responsiveness
+  // Resize listener
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 992 && isOpen) {
         setIsOpen(false);
       }
-      // Reset collapsed state on mobile/tablet
       if (window.innerWidth < 992 && collapsed) {
         setCollapsed(false);
       }
     };
-
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [isOpen, collapsed]);
 
-  // Touch gesture handling for mobile swipe
+  // Touch handlers
   useEffect(() => {
-    if (window.innerWidth >= 992) return; // Only on mobile/tablet
+    if (window.innerWidth >= 992) return;
 
     const handleTouchStart = (e) => {
       touchStartX.current = e.touches[0].clientX;
@@ -161,21 +183,14 @@ const Navbar = () => {
     const handleTouchMove = (e) => {
       if (!touchStartX.current) return;
       touchMoved.current = true;
-      
-      const currentX = e.touches[0].clientX;
-      const currentY = e.touches[0].clientY;
-      const diffX = currentX - touchStartX.current;
-      const diffY = Math.abs(currentY - touchStartY.current);
-      
-      // Only handle horizontal swipes (ignore vertical scrolling)
+      const diffX = e.touches[0].clientX - touchStartX.current;
+      const diffY = Math.abs(e.touches[0].clientY - touchStartY.current);
+
       if (Math.abs(diffX) > diffY && Math.abs(diffX) > 50) {
-        // Swipe from left edge to open sidebar
         if (!isOpen && touchStartX.current < 50 && diffX > 100) {
           e.preventDefault();
           setIsOpen(true);
-        }
-        // Swipe right to close sidebar when open
-        else if (isOpen && diffX < -100) {
+        } else if (isOpen && diffX < -100) {
           e.preventDefault();
           setIsOpen(false);
         }
@@ -205,33 +220,18 @@ const Navbar = () => {
       navigate('/login');
       setUserMenuOpen(false);
     } catch (error) {
-      if (process.env.NODE_ENV !== 'production') {
-        // eslint-disable-next-line no-console
-        console.error('Logout failed:', error);
-      }
+      console.error('Logout failed:', error);
     }
   };
 
   const toggleSidebar = () => {
-    // Only allow collapse/expand on desktop (>= 992px)
     if (window.innerWidth >= 992) {
       setCollapsed(prev => !prev);
     }
   };
 
-  const toggleMobileMenu = () => {
-    setIsOpen(prev => !prev);
-  };
-
-  const toggleUserMenu = () => {
-    setUserMenuOpen(prev => !prev);
-  };
-
-  // Group navigation items by category
   const groupedItems = navigationItems.reduce((acc, item) => {
-    if (!acc[item.category]) {
-      acc[item.category] = [];
-    }
+    if (!acc[item.category]) acc[item.category] = [];
     acc[item.category].push(item);
     return acc;
   }, {});
@@ -245,196 +245,189 @@ const Navbar = () => {
 
   return (
     <>
-      {/* Mobile toggle button */}
+      {/* Mobile Toggle Button */}
       <button
-        className={`sidebar-mobile-toggle ${isOpen ? 'active' : ''}`}
-        aria-label={isOpen ? 'Close menu' : 'Open menu'}
-        aria-expanded={isOpen}
-        onClick={toggleMobileMenu}
-        style={{ 
-          background: isOpen ? 'rgba(239, 68, 68, 0.9)' : undefined,
-          color: isOpen ? 'white' : undefined
-        }}
+        className={cn(
+          "fixed top-4 left-4 z-[1100] p-2 rounded-lg transition-all duration-300 lg:hidden",
+          isOpen ? "bg-red-500 text-white" : "bg-white text-gray-700 shadow-md"
+        )}
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label="Toggle menu"
       >
-        <span className="hamburger"></span>
+        <Menu size={24} />
       </button>
 
-      <aside 
+      {/* Sidebar Overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-[1000] lg:hidden backdrop-blur-sm"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
         ref={sidebarRef}
-        className={`sidebar ${collapsed ? 'collapsed' : ''} ${isOpen ? 'open' : ''}`}
+        className={cn(
+          "fixed top-0 left-0 h-full z-[1001] bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 text-white transition-all duration-300 ease-in-out shadow-2xl border-r border-white/10 flex flex-col",
+          collapsed ? "w-[72px]" : "w-[280px]",
+          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        )}
       >
-        <div className="sidebar-header">
-          <Link to="/" className="sidebar-brand" onClick={() => setIsOpen(false)}>
-            <div className="brand-icon">
-              <i className="fas fa-chart-line"></i>
+        {/* Header */}
+        <div className="h-[72px] flex items-center justify-between px-6 border-b border-white/10 bg-white/5">
+          <Link to="/" className="flex items-center gap-3 overflow-hidden" onClick={() => setIsOpen(false)}>
+            <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-tr from-accent-500 to-secondary-500 rounded-xl flex items-center justify-center shadow-lg border border-white/20">
+              <BarChart2 className="text-white" size={20} />
             </div>
-            <span className="brand-text">FinanceHub</span>
+            <span className={cn(
+              "font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300 transition-opacity duration-300",
+              collapsed ? "opacity-0 w-0" : "opacity-100 w-auto"
+            )}>
+              FinanceHub
+            </span>
           </Link>
 
           <button
-            className="collapse-toggle"
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             onClick={toggleSidebar}
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            style={{ display: typeof window !== 'undefined' && window.innerWidth < 992 ? 'none' : 'flex' }}
+            className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg hover:bg-white/10 transition-colors text-gray-300 hover:text-white"
           >
-            <i className={`fas ${collapsed ? 'fa-chevron-right' : 'fa-chevron-left'}`}></i>
+            {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
           </button>
         </div>
 
+        {/* Navigation */}
         {user && (
-          <nav className="sidebar-nav">
+          <nav className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-6">
             {Object.entries(groupedItems).map(([category, items]) => (
-              <div key={category} className="nav-group">
+              <div key={category}>
                 {!collapsed && (
-                  <div className="nav-group-label">
+                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">
                     {categoryLabels[category]}
-                  </div>
+                  </h3>
                 )}
-                <ul>
-                  {items.map(item => (
-                    <li key={item.path}>
-                      <NavLink
-                        to={item.path}
-                        className={({ isActive }) => 
-                          `sidebar-link ${isActive ? 'active' : ''}`
-                        }
-                        onClick={() => setIsOpen(false)}
-                        title={collapsed ? item.label : ''}
-                        data-testid={item.path === '/dashboard' ? 'nav-dashboard' : undefined}
-                      >
-                        <i className={item.icon}></i>
-                        <span className="link-text">{item.label}</span>
-                        {item.badge && (
-                          <span className="nav-badge">{item.badge}</span>
-                        )}
-                      </NavLink>
-                    </li>
-                  ))}
+                <ul className="space-y-1">
+                  {items.map(item => {
+                    const Icon = item.icon;
+                    return (
+                      <li key={item.path}>
+                        <NavLink
+                          to={item.path}
+                          className={({ isActive }) => cn(
+                            "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group",
+                            isActive 
+                              ? "bg-white/10 text-white shadow-sm border border-white/5" 
+                              : "text-gray-400 hover:text-white hover:bg-white/5 hover:translate-x-1"
+                          )}
+                          onClick={() => setIsOpen(false)}
+                          title={collapsed ? item.label : ''}
+                        >
+                          <Icon size={20} className={cn("flex-shrink-0 transition-transform duration-200 group-hover:scale-110")} />
+                          <span className={cn(
+                            "whitespace-nowrap transition-all duration-300",
+                            collapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
+                          )}>
+                            {item.label}
+                          </span>
+                        </NavLink>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             ))}
           </nav>
         )}
 
-        <div className="sidebar-footer">
+        {/* Footer / User Profile */}
+        <div className="p-4 border-t border-white/10 bg-black/10">
           {user ? (
-            <div className="sidebar-user" ref={userMenuRef}>
+            <div className="relative" ref={userMenuRef}>
               <button
-                className="sidebar-user-trigger"
-                onClick={toggleUserMenu}
-                aria-expanded={userMenuOpen}
-                aria-haspopup="true"
-                title={collapsed ? `Hi, ${user.username}` : ''}
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className={cn(
+                  "w-full flex items-center gap-3 p-2 rounded-xl transition-all duration-200 hover:bg-white/10 border border-transparent hover:border-white/5",
+                  userMenuOpen && "bg-white/10"
+                )}
               >
-                <div className="user-avatar">
-                  {user.avatar ? (
-                    <img src={user.avatar} alt={`${user.username}'s avatar`} />
-                  ) : (
-                    <i className="fas fa-user"></i>
-                  )}
-                  <div className="user-status-indicator"></div>
+                <div className="w-9 h-9 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white ring-2 ring-white/20">
+                  {user.avatar ? <img src={user.avatar} className="w-full h-full rounded-full object-cover" alt="User" /> : <User size={18} />}
                 </div>
+                
+                <div className={cn(
+                  "flex-1 text-left overflow-hidden transition-all duration-300",
+                  collapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100 block"
+                )}>
+                  <p className="text-sm font-semibold truncate text-white">{user.username}</p>
+                  <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                </div>
+
                 {!collapsed && (
-                  <>
-                    <div className="user-meta">
-                      <span className="user-greet">Welcome back,</span>
-                      <span className="user-name">{user.username}</span>
-                    </div>
-                    <i className={`user-caret fas ${userMenuOpen ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
-                  </>
+                  <div className="text-gray-400">
+                    {userMenuOpen ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+                  </div>
                 )}
               </button>
 
-              <div className={`user-menu ${userMenuOpen ? 'open' : ''}`}>
-                <div className="user-menu-header">
-                  <div className="user-avatar-large">
-                    {user.avatar ? (
-                      <img src={user.avatar} alt={`${user.username}'s avatar`} />
-                    ) : (
-                      <i className="fas fa-user"></i>
-                    )}
-                  </div>
-                  <div className="user-info">
-                    <strong>{user.username}</strong>
-                    <span>{user.email}</span>
-                  </div>
-                </div>
-                
-                <div className="user-menu-divider"></div>
-                
-                <Link 
-                  to="/profile" 
-                  className="user-menu-item" 
-                  onClick={() => setUserMenuOpen(false)}
-                >
-                  <i className="fas fa-user-circle"></i>
-                  <span>View Profile</span>
-                </Link>
-                
-                <Link 
-                  to="/settings" 
-                  className="user-menu-item" 
-                  onClick={() => setUserMenuOpen(false)}
-                >
-                  <i className="fas fa-cog"></i>
-                  <span>Settings</span>
-                </Link>
-                
-                <Link 
-                  to="/help" 
-                  className="user-menu-item" 
-                  onClick={() => setUserMenuOpen(false)}
-                >
-                  <i className="fas fa-question-circle"></i>
-                  <span>Help & Support</span>
-                </Link>
-                
-                <div className="user-menu-divider"></div>
-                
-                <button 
-                  className="user-menu-item logout-item" 
+              {/* User Dropdown */}
+              <div
+                className={cn(
+                  "absolute bottom-full left-0 mb-2 w-full min-w-[240px] bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-2 transition-all duration-200 origin-bottom-left",
+                  userMenuOpen ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 translate-y-2 pointer-events-none"
+                )}
+                style={{ left: collapsed ? 'calc(100% + 10px)' : '0' }}
+              >
+                 <div className="flex items-center gap-3 p-3 border-b border-white/10 mb-2">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white ring-2 ring-white/20">
+                      {user.avatar ? <img src={user.avatar} className="w-full h-full rounded-full object-cover" alt="User" /> : <User size={20} />}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-white">{user.username}</p>
+                      <p className="text-xs text-gray-400">{user.email}</p>
+                    </div>
+                 </div>
+
+                 <Link to="/profile" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                   <User size={16} /> Profile
+                 </Link>
+                 <Link to="/settings" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                   <Settings size={16} /> Settings
+                 </Link>
+                 <Link to="/help" className="flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                   <HelpCircle size={16} /> Help
+                 </Link>
+                 
+                 <div className="h-px bg-white/10 my-2" />
+                 
+                 <button 
                   onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
                 >
-                  <i className="fas fa-sign-out-alt"></i>
-                  <span>Sign Out</span>
-                </button>
+                   <LogOut size={16} /> Sign Out
+                 </button>
               </div>
             </div>
           ) : (
-            <div className="sidebar-auth">
-              <Link to="/login" className="btn btn-outline" onClick={() => setIsOpen(false)}>
-                <i className="fas fa-sign-in-alt"></i>
-                <span>Sign In</span>
+            <div className={cn("flex flex-col gap-2", collapsed ? "hidden" : "flex")}>
+              <Link to="/login" className="flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors text-sm font-medium">
+                <LogIn size={16} /> Sign In
               </Link>
-              <Link to="/register" className="btn btn-primary" onClick={() => setIsOpen(false)}>
-                <i className="fas fa-user-plus"></i>
-                <span>Get Started</span>
+              <Link to="/register" className="flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-accent-600 hover:bg-accent-700 text-white transition-colors text-sm font-medium">
+                <UserPlus size={16} /> Get Started
               </Link>
             </div>
           )}
         </div>
       </aside>
 
-      {/* Mobile overlay */}
-      {isOpen && (
-        <div 
-          className="sidebar-overlay" 
-          onClick={() => setIsOpen(false)}
-          aria-hidden="true"
-        ></div>
-      )}
-
-      {/* Quick actions floating button for mobile */}
+      {/* Quick Action Mobile */}
       {user && (
-        <div className="quick-actions-mobile">
+        <div className="fixed bottom-6 right-6 lg:hidden z-[1000]">
           <button 
-            className="quick-action-btn" 
-            title="Add Expense"
             onClick={() => navigate('/expenses/add')}
-            data-testid="quick-add-expense"
+            className="w-14 h-14 bg-accent-600 rounded-full shadow-lg shadow-accent-500/40 flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all"
           >
-            <i className="fas fa-plus"></i>
+            <Plus size={28} />
           </button>
         </div>
       )}

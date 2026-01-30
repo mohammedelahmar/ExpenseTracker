@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom';
 import subscriptionService from '../../services/subscriptionService';
 import SubscriptionCard from './SubscriptionCard';
 import UpcomingPayments from './UpcomingPayments';
-import '../../styles/Subscription.css';
 import Lottie from 'lottie-react';
 import dashboardLoadingAnimation from '../../assets/dashboard-loading.json';
 import Swal from 'sweetalert2';
+import { Plus, CreditCard, RefreshCw } from 'lucide-react';
+// import '../../styles/Subscription.css'; // Removed
 
 const SubscriptionList = () => {
   const [subscriptions, setSubscriptions] = useState([]);
@@ -53,7 +54,7 @@ const SubscriptionList = () => {
         icon: 'success',
         title: 'Success!',
         text: 'Payment recorded successfully!',
-        confirmButtonColor: '#28a745',
+        confirmButtonColor: '#10b981',
         timer: 3000,
         timerProgressBar: true,
         toast: true,
@@ -84,34 +85,50 @@ const SubscriptionList = () => {
     }, 0);
 
   return (
-    <div className="subscriptions-container">
-      <div className="subscription-header">
-        <div>
-          <h1>Subscriptions</h1>
-          <p>Monthly recurring cost: <strong>${monthlyTotal.toFixed(2)}</strong></p>
+    <div className="container mx-auto px-4 py-8 max-w-7xl min-h-screen">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-8 p-6 md:p-8 bg-gradient-to-r from-primary-600 to-primary-800 rounded-3xl shadow-xl relative overflow-hidden text-white">
+         <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-10 pointer-events-none">
+          <svg className="absolute w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+             <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
+          </svg>
         </div>
-        <Link to="/subscriptions/add" className="btn btn-primary">
-          <i className="fas fa-plus"></i> Add Subscription
+        
+        <div className="relative z-10 text-center md:text-left mb-6 md:mb-0">
+          <h1 className="text-3xl md:text-4xl font-extrabold mb-2 tracking-tight">Subscriptions</h1>
+          <p className="text-primary-100 font-medium flex items-center justify-center md:justify-start gap-2">
+            Monthly recurring cost: <strong className="text-white text-xl">${monthlyTotal.toFixed(2)}</strong>
+          </p>
+        </div>
+        
+        <Link 
+          to="/subscriptions/add" 
+          className="relative z-10 flex items-center gap-2 px-6 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-full font-bold text-white transition-all hover:bg-white/30 hover:scale-105 active:scale-95 shadow-lg group"
+        >
+          <Plus size={20} className="transition-transform group-hover:rotate-90" />
+          Add Subscription
         </Link>
       </div>
       
-      {error && <div className="alert alert-danger">{error}</div>}
+      {error && (
+        <div className="mb-6 p-4 bg-rose-50 border-l-4 border-rose-500 text-rose-700 rounded-r-lg shadow-sm">
+          {error}
+        </div>
+      )}
       
       <UpcomingPayments />
       
       {loading ? (
-        <div className="loading-animation-container">
-          <div className="loading-animation-wrapper">
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="w-48 h-48">
             <Lottie 
               animationData={dashboardLoadingAnimation}
               loop={true}
-              style={{ width: 180, height: 180 }}
             />
-            <p className="loading-text">Loading your subscriptions...</p>
           </div>
+          <p className="text-gray-500 font-medium mt-4">Loading your subscriptions...</p>
         </div>
       ) : subscriptions.length > 0 ? (
-        <div className="subscription-list">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {subscriptions.map(subscription => (
             <SubscriptionCard 
               key={subscription._id}
@@ -122,10 +139,13 @@ const SubscriptionList = () => {
           ))}
         </div>
       ) : (
-        <div className="no-subscriptions">
-          <h3>No Subscriptions Yet</h3>
-          <p>Track your recurring payments by adding your subscriptions.</p>
-          <Link to="/subscriptions/add" className="btn btn-primary">
+        <div className="flex flex-col items-center justify-center py-20 px-4 bg-white rounded-3xl shadow-sm border border-gray-100 text-center max-w-2xl mx-auto">
+          <div className="w-20 h-20 bg-primary-50 rounded-full flex items-center justify-center mb-6">
+            <RefreshCw size={40} className="text-primary-500" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">No Subscriptions Yet</h3>
+          <p className="text-gray-500 mb-8 max-w-md">Track your recurring payments by adding your subscriptions.</p>
+          <Link to="/subscriptions/add" className="btn btn-primary px-8 py-3 bg-primary-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:-translate-y-1 hover:bg-primary-700 transition-all">
             Add Your First Subscription
           </Link>
         </div>

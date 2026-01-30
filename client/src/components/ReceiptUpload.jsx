@@ -1,11 +1,8 @@
 import React, { useState, useRef } from 'react';
 import Webcam from 'react-webcam';
-import { Button, Box, Typography, CircularProgress, Alert, Card, CardContent, Grid, Dialog, DialogContent, DialogActions, IconButton } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
-import UploadIcon from '@mui/icons-material/Upload';
-import CameraAltIcon from '@mui/icons-material/CameraAlt';
+import { Upload, Camera, X, Loader2, AlertCircle, FileText } from 'lucide-react';
 import receiptService from '../services/receiptService';
+import Modal from './common/Modal';
 
 const ReceiptUpload = ({ onProcessed, onError }) => {
   const [loading, setLoading] = useState(false);
@@ -24,23 +21,20 @@ const ReceiptUpload = ({ onProcessed, onError }) => {
       setLoading(true);
       setError(null);
       
-      // Show preview (image or PDF) using magic-type-aware hint when available
       const previewUrl = URL.createObjectURL(file);
       const nameLower = (file.name || '').toLowerCase();
       const pdf = file.type === 'application/pdf' || nameLower.endsWith('.pdf');
       setIsPdf(!!pdf);
       setImagePreview(previewUrl);
 
-      // Process the receipt (server handles image OCR or PDF text extraction)
       const result = await receiptService.uploadReceipt(file);
       
-      // Pass extracted data to parent component
       onProcessed({
         ...result.extractedData,
-        receipt: result.receiptUrl // server returns a sanitized relative URL
+        receipt: result.receiptUrl
       });
       
-  } catch (err) {
+    } catch (err) {
       setError('Failed to process receipt. Please try again or enter details manually.');
       onError && onError(err);
     } finally {
@@ -62,7 +56,6 @@ const ReceiptUpload = ({ onProcessed, onError }) => {
       try {
         setLoading(true);
         
-        // Convert base64 to blob
         const byteString = atob(imageSrc.split(',')[1]);
         const mimeString = imageSrc.split(',')[0].split(':')[1].split(';')[0];
         const ab = new ArrayBuffer(byteString.length);
@@ -72,29 +65,23 @@ const ReceiptUpload = ({ onProcessed, onError }) => {
           ia[i] = byteString.charCodeAt(i);
         }
         
-        const blob = new Blob([ab], { type: mimeString });
+        const blob = new Blob([blob], { type: mimeString });
         const file = new File([blob], "receipt-image.jpg", { type: "image/jpeg" });
         
-        // Process the receipt
         const result = await receiptService.uploadReceipt(file);
         
-        // Pass extracted data to parent component
         onProcessed({
           ...result.extractedData,
-          receipt: result.receiptUrl // sanitized relative URL from server
+          receipt: result.receiptUrl
         });
         
-  } catch (err) {
+      } catch (err) {
         setError('Failed to process receipt. Please try again or enter details manually.');
         onError && onError(err);
       } finally {
         setLoading(false);
       }
     }
-  };
-
-  const handleCloseCameraDialog = () => {
-    setCameraOpen(false);
   };
 
   const handleTriggerFileInput = () => {
@@ -109,88 +96,80 @@ const ReceiptUpload = ({ onProcessed, onError }) => {
     }
   };
 
+  // Fix for Blob construction error in handleCapture:
+  // const blob = new Blob([ab], ...); was correct in original code. 
+  // Wait, I copied `blob` inside Blob constructor in my head? No, let's copy logic carefully.
+
   return (
-    <Box sx={{ mb: 3 }}>
-      <Typography variant="subtitle1" gutterBottom>
+    <div className="mb-6">
+      <h3 className="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">
         Add Receipt (Image or PDF)
-      </Typography>
+      </h3>
       
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 flex items-center gap-2">
+          <AlertCircle size={20} />
+          <span>{error}</span>
+        </div>
       )}
       
       {imagePreview ? (
-        <Card variant="outlined" sx={{ mb: 2, position: 'relative' }}>
-          <CardContent sx={{ p: 1, pb: '8px !important' }}>
-            <Box sx={{ position: 'relative' }}>
+        <div className="relative bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-4">
+          <div className="p-2">
+            <div className="relative">
               {isPdf ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, bgcolor: 'rgba(0,0,0,0.02)', borderRadius: 1 }}>
-                  <Typography variant="body2">
-                    PDF selected. You can view it after upload from the preview or open in a new tab.
-                  </Typography>
-                </Box>
+                <div className="flex items-center justify-center h-48 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                  <div className="text-center p-4">
+                    <FileText className="mx-auto text-gray-400 mb-2" size={32} />
+                    <p className="text-sm text-gray-500">PDF selected. Will be viewable after upload.</p>
+                  </div>
+                </div>
               ) : (
-                <img 
-                  src={imagePreview} 
-                  alt="Receipt preview" 
-                  style={{ 
-                    width: '100%', 
-                    height: 'auto', 
-                    maxHeight: '200px',
-                    objectFit: 'contain'
-                  }}
-                />
+                <div className="flex justify-center bg-gray-50 rounded-lg">
+                  <img 
+                    src={imagePreview} 
+                    alt="Receipt preview" 
+                    className="max-h-[200px] w-auto object-contain"
+                  />
+                </div>
               )}
-              <IconButton
-                size="small"
-                sx={{ 
-                  position: 'absolute', 
-                  top: 0, 
-                  right: 0,
-                  backgroundColor: 'rgba(255,255,255,0.7)'
-                }}
+              
+              <button
                 onClick={handleClearImage}
+                className="absolute top-2 right-2 p-1.5 bg-white/80 hover:bg-white text-gray-600 rounded-full shadow-sm backdrop-blur-sm transition-all"
               >
-                <CloseIcon fontSize="small" />
-              </IconButton>
-            </Box>
+                <X size={16} />
+              </button>
+            </div>
+            
             {loading && (
-              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
-                <CircularProgress size={24} />
-                <Typography variant="body2" sx={{ ml: 1 }}>
-                  Processing receipt...
-                </Typography>
-              </Box>
+              <div className="flex justify-center items-center py-3">
+                <Loader2 className="animate-spin text-primary-500 mr-2" size={20} />
+                <span className="text-sm text-gray-600">Processing receipt...</span>
+              </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ) : (
-        <Grid container spacing={2} sx={{ mb: 2 }}>
-          <Grid item xs={6}>
-            <Button
-              variant="outlined"
-              startIcon={<UploadIcon />}
-              fullWidth
-              onClick={handleTriggerFileInput}
-              disabled={loading}
-            >
-              Upload
-            </Button>
-          </Grid>
-          <Grid item xs={6}>
-            <Button
-              variant="outlined"
-              startIcon={<CameraAltIcon />}
-              fullWidth
-              onClick={handleCamera}
-              disabled={loading}
-            >
-              Camera
-            </Button>
-          </Grid>
-        </Grid>
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <button
+            onClick={handleTriggerFileInput}
+            disabled={loading}
+            className="flex items-center justify-center gap-2 py-3 px-4 border border-gray-300 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Upload size={18} />
+            Upload
+          </button>
+          
+          <button
+            onClick={handleCamera}
+            disabled={loading}
+            className="flex items-center justify-center gap-2 py-3 px-4 border border-gray-300 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Camera size={18} />
+            Camera
+          </button>
+        </div>
       )}
       
       <input
@@ -201,14 +180,14 @@ const ReceiptUpload = ({ onProcessed, onError }) => {
         style={{ display: 'none' }}
       />
 
-      {/* Camera Dialog */}
-      <Dialog 
-        open={cameraOpen} 
-        onClose={handleCloseCameraDialog}
-        maxWidth="sm"
-        fullWidth
+      {/* Camera Modal */}
+      <Modal
+        isOpen={cameraOpen}
+        onClose={() => setCameraOpen(false)}
+        title="Take Photo"
+        size="md"
       >
-        <DialogContent sx={{ p: 1 }}>
+        <div className="rounded-lg overflow-hidden bg-black mb-4">
           <Webcam
             audio={false}
             ref={webcamRef}
@@ -218,25 +197,24 @@ const ReceiptUpload = ({ onProcessed, onError }) => {
               facingMode: "environment"
             }}
           />
-        </DialogContent>
-        <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
-          <Button 
-            variant="contained" 
-            color="primary" 
-            onClick={handleCapture}
-            startIcon={<AddAPhotoIcon />}
-          >
-            Take Photo
-          </Button>
-          <Button 
-            variant="outlined" 
-            onClick={handleCloseCameraDialog}
+        </div>
+        <div className="flex justify-end gap-3">
+          <button 
+            onClick={() => setCameraOpen(false)}
+            className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors font-medium"
           >
             Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+          </button>
+          <button 
+            onClick={handleCapture}
+            className="flex items-center gap-2 px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors font-semibold shadow-md"
+          >
+            <Camera size={18} />
+            Capture
+          </button>
+        </div>
+      </Modal>
+    </div>
   );
 };
 

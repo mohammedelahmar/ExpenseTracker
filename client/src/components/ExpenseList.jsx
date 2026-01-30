@@ -3,11 +3,29 @@ import { Link, useNavigate } from 'react-router-dom';
 import expenseService from '../services/expenseService';
 import { makeSafeUrl } from '../utils/url';
 import ReceiptViewer from './ReceiptViewer';
-import '../styles/ExpenseList.css';
+// import '../styles/ExpenseList.css'; // Removed
 import Lottie from 'lottie-react';
 import dashboardLoadingAnimation from '../assets/dashboard-loading.json';
+import { 
+  Plus, 
+  Search, 
+  Filter, 
+  ChevronDown, 
+  ChevronUp, 
+  X, 
+  Calendar, 
+  Receipt, 
+  DollarSign, 
+  Check, 
+  Edit2, 
+  Trash2, 
+  ChevronLeft, 
+  ChevronRight,
+  RefreshCw,
+  AlertCircle
+} from 'lucide-react';
 
-const LOCAL_PLACEHOLDER = require('../assets/receipt-placeholder.png'); // Add a local placeholder image to assets
+const LOCAL_PLACEHOLDER = require('../assets/receipt-placeholder.png');
 
 const ExpenseList = () => {
   const [expenses, setExpenses] = useState([]);
@@ -197,253 +215,268 @@ const ExpenseList = () => {
 
   const renderReceipt = (receipt, description) => {
     if (!receipt) {
-      return <span className="no-receipt">No receipt</span>;
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
+          No receipt
+        </span>
+      );
     }
 
-  const receiptUrl = makeSafeUrl(receipt);
+    const receiptUrl = makeSafeUrl(receipt);
 
     return (
       <button
-        className="receipt-link"
+        className="group relative flex items-center gap-2 hover:opacity-80 transition-opacity"
         onClick={() => setViewReceipt({
           show: true,
           url: receiptUrl,
           description: description
         })}
       >
-        <img
-          src={receiptUrl}
-          alt="Receipt"
-          className="receipt-thumbnail"
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = LOCAL_PLACEHOLDER; // Use local fallback image
-          }}
-        />
-        <span>View</span>
+        <div className="relative">
+          <img
+            src={receiptUrl}
+            alt="Receipt"
+            className="w-10 h-10 object-cover rounded-lg border-2 border-gray-100 shadow-sm group-hover:border-primary-200 transition-colors"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = LOCAL_PLACEHOLDER; 
+            }}
+          />
+          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 rounded-lg transition-all flex items-center justify-center">
+            <Search className="text-white opacity-0 group-hover:opacity-100 w-4 h-4 drop-shadow-md" />
+          </div>
+        </div>
+        <span className="text-sm font-medium text-primary-600 hidden lg:inline-block">View</span>
       </button>
     );
   };
 
   return (
-    <div className="expense-list-container">
-      <div className="expense-list-header">
+    <div className="container mx-auto px-4 py-8 max-w-7xl min-h-screen bg-gray-50/30">
+        {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div className="header-content">
-          <h1>Your Expenses</h1>
-          <div className="expense-stats">
-            <span className="stat-item">
-              <i className="fas fa-receipt"></i>
+          <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-sky-500 mb-2">
+            Your Expenses
+          </h1>
+          <div className="flex items-center gap-6 text-sm text-gray-500 font-medium">
+            <span className="flex items-center gap-2">
+              <Receipt size={16} className="text-sky-500" />
               {pagination?.total || 0} expenses
             </span>
             {pagination?.total > 0 && (
-              <span className="stat-item">
-                <i className="fas fa-dollar-sign"></i>
+              <span className="flex items-center gap-2">
+                <DollarSign size={16} className="text-sky-500" />
                 Total: $
                 {expenses.reduce((sum, exp) => sum + parseFloat(exp.amount), 0).toFixed(2)}
               </span>
             )}
           </div>
         </div>
-        <Link to="/expenses/add" className="add-expense-btn">
-          <i className="fas fa-plus"></i> Add New Expense
+        <Link 
+          to="/expenses/add" 
+          className="mt-4 md:mt-0 inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-sky-500 text-white font-semibold rounded-full shadow-lg shadow-primary-500/20 hover:shadow-primary-500/30 hover:-translate-y-0.5 transition-all text-sm"
+        >
+          <Plus size={18} /> Add New Expense
         </Link>
       </div>
 
-      {error && <div className="alert alert-danger">{error}</div>}
+      {error && (
+        <div className="mb-6 rounded-lg bg-red-50 p-4 border border-red-200 flex items-center text-red-700">
+          <AlertCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+          {error}
+        </div>
+      )}
 
       {/* Enhanced Filter Card */}
-      <div className="filter-card">
-        <div className="filter-header">
-          <div className="filter-title">
-            <i className="fas fa-filter"></i> 
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-8 overflow-hidden transition-all duration-300 hover:shadow-md">
+        <div className="flex justify-between items-center p-5 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+          <div className="flex items-center gap-3 text-lg font-semibold text-gray-800">
+            <Filter size={20} className="text-sky-500" /> 
             <span>Filters & Search</span>
             {activeFiltersCount > 0 && (
-              <span className="filter-badge">{activeFiltersCount}</span>
+              <span className="px-2.5 py-0.5 bg-gradient-to-r from-primary-500 to-sky-500 text-white text-xs font-bold rounded-full">
+                {activeFiltersCount}
+              </span>
             )}
           </div>
           <button 
-            className="filter-toggle-btn"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-full hover:bg-gray-50 hover:text-primary-600 hover:border-primary-200 transition-all"
             onClick={() => setShowFilters(!showFilters)}
           >
             {showFilters ? (
-              <>Hide Filters <i className="fas fa-chevron-up"></i></>
+              <>Hide Filters <ChevronUp size={16} /></>
             ) : (
-              <>Show Filters <i className="fas fa-chevron-down"></i></>
+              <>Show Filters <ChevronDown size={16} /></>
             )}
           </button>
         </div>
 
         {/* Search Bar */}
-        <div className="search-container">
-          <div className="search-input-wrapper">
-            <i className="fas fa-search search-icon"></i>
+        <div className="p-6 pb-2">
+          <div className="relative max-w-2xl">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
               placeholder="Search expenses by description, category, or amount..."
-              className="search-input"
+              className="w-full pl-12 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-gray-700 placeholder-gray-400"
               value={searchQuery}
               onChange={handleSearchChange}
             />
             {searchQuery && (
               <button 
-                className="clear-search-btn"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
                 onClick={() => setSearchQuery('')}
               >
-                <i className="fas fa-times"></i>
+                <X size={16} />
               </button>
             )}
           </div>
         </div>
 
         {/* Quick Filters */}
-        <div className="quick-filters">
-          <div className="quick-filter-label">Quick Filters:</div>
-          <div className="quick-filter-buttons">
-            <button 
-              className={`quick-filter-btn ${quickFilters.today ? 'active' : ''}`}
-              onClick={() => handleQuickFilterToggle('today')}
-            >
-              <i className="fas fa-calendar-day"></i> Today
-            </button>
-            <button 
-              className={`quick-filter-btn ${quickFilters.thisWeek ? 'active' : ''}`}
-              onClick={() => handleQuickFilterToggle('thisWeek')}
-            >
-              <i className="fas fa-calendar-week"></i> This Week
-            </button>
-            <button 
-              className={`quick-filter-btn ${quickFilters.thisMonth ? 'active' : ''}`}
-              onClick={() => handleQuickFilterToggle('thisMonth')}
-            >
-              <i className="fas fa-calendar-alt"></i> This Month
-            </button>
-            <button 
-              className={`quick-filter-btn ${quickFilters.hasReceipt ? 'active' : ''}`}
-              onClick={() => handleQuickFilterToggle('hasReceipt')}
-            >
-              <i className="fas fa-receipt"></i> With Receipt
-            </button>
+        <div className="px-6 py-4 border-b border-gray-50">
+          <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">Quick Filters</div>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { id: 'today', icon: Calendar, label: 'Today' },
+              { id: 'thisWeek', icon: Calendar, label: 'This Week' },
+              { id: 'thisMonth', icon: Calendar, label: 'This Month' },
+              { id: 'hasReceipt', icon: Receipt, label: 'With Receipt' }
+            ].map(filter => {
+              const Icon = filter.icon;
+              return (
+                <button 
+                  key={filter.id}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    quickFilters[filter.id] 
+                      ? 'bg-gradient-to-r from-primary-500 to-sky-500 text-white shadow-md shadow-primary-500/20 border-transparent' 
+                      : 'bg-white border border-gray-200 text-gray-600 hover:border-primary-300 hover:text-primary-600'
+                  }`}
+                  onClick={() => handleQuickFilterToggle(filter.id)}
+                >
+                  <Icon size={14} /> {filter.label}
+                </button>
+              );
+            })}
           </div>
         </div>
         
         {showFilters && (
-          <>
+          <div className="animate-in slide-in-from-top-4 duration-300">
             {/* Category Filter */}
-            <div className="category-filter-section">
-              <div className="filter-section-title">Categories</div>
-              <div className="category-chips">
+            <div className="px-6 py-4 border-b border-gray-50">
+              <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">Categories</div>
+              <div className="flex flex-wrap gap-2">
                 {availableCategories.map(category => (
                   <button
                     key={category}
-                    className={`category-chip ${selectedCategories.includes(category) ? 'selected' : ''}`}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                      selectedCategories.includes(category) 
+                        ? 'bg-sky-100 text-sky-700 border border-sky-200' 
+                        : 'bg-gray-50 text-gray-600 border border-transparent hover:bg-gray-100'
+                    }`}
                     onClick={() => handleCategoryToggle(category)}
                   >
                     {category}
                     {selectedCategories.includes(category) && (
-                      <i className="fas fa-check"></i>
+                      <Check size={14} />
                     )}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="filter-form-grid">
-              <div className="filter-date-inputs">
-                <div className="filter-date-group">
-                  <label className="filter-label" htmlFor="startDate">From Date</label>
-                  <div className="input-icon-wrapper">
-                    <i className="fas fa-calendar-alt input-icon"></i>
-                    <input
-                      type="date"
-                      id="startDate"
-                      name="startDate"
-                      className="filter-input filter-date-input"
-                      value={filters.startDate}
-                      onChange={handleFilterChange}
-                    />
-                  </div>
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-gray-700">From Date</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="date"
+                    name="startDate"
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm"
+                    value={filters.startDate}
+                    onChange={handleFilterChange}
+                  />
                 </div>
-                <div className="filter-date-group">
-                  <label className="filter-label" htmlFor="endDate">To Date</label>
-                  <div className="input-icon-wrapper">
-                    <i className="fas fa-calendar-alt input-icon"></i>
-                    <input
-                      type="date"
-                      id="endDate"
-                      name="endDate"
-                      className="filter-input filter-date-input"
-                      value={filters.endDate}
-                      onChange={handleFilterChange}
-                    />
-                  </div>
+              </div>
+              
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-gray-700">To Date</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="date"
+                    name="endDate"
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm"
+                    value={filters.endDate}
+                    onChange={handleFilterChange}
+                  />
                 </div>
               </div>
 
-              <div className="filter-amount-inputs">
-                <div className="filter-group">
-                  <label className="filter-label" htmlFor="minAmount">Minimum Amount</label>
-                  <div className="input-icon-wrapper">
-                    <i className="fas fa-dollar-sign input-icon"></i>
-                    <input
-                      type="number"
-                      id="minAmount"
-                      name="minAmount"
-                      className="filter-input"
-                      value={filters.minAmount}
-                      onChange={handleFilterChange}
-                      placeholder="0.00"
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                </div>
-
-                <div className="filter-group">
-                  <label className="filter-label" htmlFor="maxAmount">Maximum Amount</label>
-                  <div className="input-icon-wrapper">
-                    <i className="fas fa-dollar-sign input-icon"></i>
-                    <input
-                      type="number"
-                      id="maxAmount"
-                      name="maxAmount"
-                      className="filter-input"
-                      value={filters.maxAmount}
-                      onChange={handleFilterChange}
-                      placeholder="0.00"
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-gray-700">Min Amount</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-semibold">$</span>
+                  <input
+                    type="number"
+                    name="minAmount"
+                    className="w-full pl-8 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm"
+                    value={filters.minAmount}
+                    onChange={handleFilterChange}
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                  />
                 </div>
               </div>
 
-              <div className="filter-group">
-                <label className="filter-label" htmlFor="sortBy">Sort By</label>
-                <div className="select-wrapper">
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-gray-700">Max Amount</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-semibold">$</span>
+                  <input
+                    type="number"
+                    name="maxAmount"
+                    className="w-full pl-8 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm"
+                    value={filters.maxAmount}
+                    onChange={handleFilterChange}
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-gray-700">Sort By</label>
+                <div className="relative">
                   <select
-                    id="sortBy"
                     name="sortBy"
-                    className="filter-input filter-select"
+                    className="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm appearance-none"
                     value={filters.sortBy}
                     onChange={handleFilterChange}
                   >
-                    <option value="date:desc">📅 Date (Newest First)</option>
-                    <option value="date:asc">📅 Date (Oldest First)</option>
-                    <option value="amount:desc">💰 Amount (Highest First)</option>
-                    <option value="amount:asc">💰 Amount (Lowest First)</option>
-                    <option value="category:asc">📂 Category (A-Z)</option>
-                    <option value="category:desc">📂 Category (Z-A)</option>
+                    <option value="date:desc">Date (Newest First)</option>
+                    <option value="date:asc">Date (Oldest First)</option>
+                    <option value="amount:desc">Amount (Highest First)</option>
+                    <option value="amount:asc">Amount (Lowest First)</option>
+                    <option value="category:asc">Category (A-Z)</option>
+                    <option value="category:desc">Category (Z-A)</option>
                   </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
                 </div>
               </div>
 
-              <div className="filter-group">
-                <label className="filter-label" htmlFor="limit">Items per page</label>
-                <div className="select-wrapper">
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-gray-700">Items per page</label>
+                <div className="relative">
                   <select
-                    id="limit"
                     name="limit"
-                    className="filter-input filter-select"
+                    className="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all text-sm appearance-none"
                     value={filters.limit}
                     onChange={handleFilterChange}
                   >
@@ -452,101 +485,111 @@ const ExpenseList = () => {
                     <option value="25">25 items</option>
                     <option value="50">50 items</option>
                   </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
                 </div>
               </div>
             </div>
             
-            <div className="filter-actions">
-              <button className="filter-btn reset-btn" onClick={resetFilters}>
-                <i className="fas fa-undo"></i> Clear All Filters
-              </button>
-              <div className="filter-summary">
+            <div className="flex justify-between items-center px-6 py-4 bg-gray-50 border-t border-gray-100">
+              <div className="text-sm font-medium text-primary-600">
                 {activeFiltersCount > 0 && (
-                  <span className="active-filters-text">
-                    {activeFiltersCount} filter{activeFiltersCount > 1 ? 's' : ''} active
+                  <span className="flex items-center gap-2 px-3 py-1 bg-primary-50 rounded-full border border-primary-100">
+                     ✨ {activeFiltersCount} active filter{activeFiltersCount > 1 ? 's' : ''}
                   </span>
                 )}
               </div>
+              <button 
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100" 
+                onClick={resetFilters}
+              >
+                <RefreshCw size={14} /> Clear All Filters
+              </button>
             </div>
-          </>
+          </div>
         )}
       </div>
 
       {loading ? (
-        <div className="loading-animation-container">
-          <div className="loading-animation-wrapper">
-            <Lottie 
-              animationData={dashboardLoadingAnimation}
-              loop={true}
-              style={{ width: 180, height: 180 }}
-            />
-            <p className="loading-text">Fetching your expenses...</p>
-          </div>
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl shadow-sm border border-gray-100">
+          <Lottie 
+            animationData={dashboardLoadingAnimation}
+            loop={true}
+            style={{ width: 180, height: 180 }}
+          />
+          <p className="mt-4 text-gray-500 font-medium">Fetching your expenses...</p>
         </div>
       ) : expenses.length > 0 ? (
         <>
-          <div className="expense-table-container">
-            <table className="expense-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Category</th>
-                  <th>Description</th>
-                  <th>Amount</th>
-                  <th>Receipt</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {expenses.map(expense => {
-                  const { day, year } = formatDate(expense.date);
-                  return (
-                    <tr key={expense._id}>
-                      <td data-label="Date">
-                        <div className="expense-date">
-                          <span className="expense-day">{day}</span>
-                          <span className="expense-year">{year}</span>
-                        </div>
-                      </td>
-                      <td data-label="Category">
-                        <span className="expense-category">{expense.category}</span>
-                      </td>
-                      <td data-label="Description">
-                        <span className="expense-description" title={expense.description}>
-                          {expense.description}
-                        </span>
-                      </td>
-                      <td data-label="Amount">
-                        <span className="expense-amount">${parseFloat(expense.amount).toFixed(2)}</span>
-                      </td>
-                      <td data-label="Receipt" className="receipt-cell">
-                        {renderReceipt(expense.receipt, expense.description)}
-                      </td>
-                      <td data-label="Actions">
-                        <div className="action-buttons">
-                          <button
-                            className="action-btn edit-btn"
-                            onClick={() => navigate(`/expenses/edit/${expense._id}`)}
-                            title="Edit expense"
-                            aria-label="Edit expense"
-                          >
-                            <i className="fas fa-edit"></i>
-                          </button>
-                          <button
-                            className="action-btn delete-btn"
-                            onClick={() => handleDelete(expense._id)}
-                            title="Delete expense"
-                            aria-label="Delete expense"
-                          >
-                            <i className="fas fa-trash"></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-50/50 border-b border-gray-200">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Description</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
+                    <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Receipt</th>
+                    <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {expenses.map(expense => {
+                    const { day, year } = formatDate(expense.date);
+                    return (
+                      <tr key={expense._id} className="hover:bg-gray-50/50 transition-colors group">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex flex-col">
+                            <span className="text-lg font-bold text-gray-800 leading-tight">{day}</span>
+                            <span className="text-xs text-gray-500">{year}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-sky-50 text-sky-700 border border-sky-100">
+                            {expense.category}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <p className="text-sm text-gray-700 font-medium line-clamp-1 max-w-[200px]" title={expense.description}>
+                            {expense.description}
+                          </p>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm font-bold text-red-500 font-mono tracking-wide bg-red-50 px-2 py-1 rounded-md border border-red-100">
+                            -${parseFloat(expense.amount).toFixed(2)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <div className="flex justify-center">
+                            {renderReceipt(expense.receipt, expense.description)}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              className="p-2 text-sky-600 hover:text-sky-700 hover:bg-sky-50 rounded-lg transition-colors border border-transparent hover:border-sky-100"
+                              onClick={() => navigate(`/expenses/edit/${expense._id}`)}
+                              title="Edit expense"
+                              aria-label="Edit expense"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button
+                              className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                              onClick={() => handleDelete(expense._id)}
+                              title="Delete expense"
+                              aria-label="Delete expense"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <ReceiptViewer 
@@ -557,66 +600,75 @@ const ExpenseList = () => {
           />
 
           {pagination && pagination.pages > 1 && (
-            <div className="pagination-container">
-              <div className="pagination-info">
+            <div className="flex flex-col sm:flex-row justify-between items-center bg-white p-5 rounded-2xl shadow-sm border border-gray-100 gap-4">
+              <div className="text-sm text-gray-500 font-medium">
                 Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} expenses
               </div>
-              <ul className="pagination">
-                <li className={`page-item ${pagination.page === 1 ? 'disabled' : ''}`}>
-                  <button 
-                    className="page-link" 
-                    onClick={() => handlePageChange(pagination.page - 1)}
-                    aria-label="Previous page"
-                  >
-                    <i className="fas fa-chevron-left"></i>
-                  </button>
-                </li>
+              <div className="flex items-center gap-1">
+                <button 
+                  className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  onClick={() => handlePageChange(pagination.page - 1)}
+                  disabled={pagination.page === 1}
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft size={18} />
+                </button>
                 
-                {[...Array(pagination.pages).keys()].map(page => (
-                  <li 
-                    key={page + 1} 
-                    className={`page-item ${pagination.page === page + 1 ? 'active' : ''}`}
-                  >
+                <div className="flex items-center gap-1 mx-2">
+                  {[...Array(pagination.pages).keys()].map(page => (
                     <button 
-                      className="page-link" 
+                      key={page + 1} 
+                      className={`w-9 h-9 flex items-center justify-center rounded-lg text-sm font-medium transition-all ${
+                        pagination.page === page + 1 
+                          ? 'bg-primary-600 text-white shadow-md shadow-primary-500/30' 
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      }`}
                       onClick={() => handlePageChange(page + 1)}
                     >
                       {page + 1}
                     </button>
-                  </li>
-                ))}
+                  ))}
+                </div>
                 
-                <li className={`page-item ${pagination.page === pagination.pages ? 'disabled' : ''}`}>
-                  <button 
-                    className="page-link" 
-                    onClick={() => handlePageChange(pagination.page + 1)}
-                    aria-label="Next page"
-                  >
-                    <i className="fas fa-chevron-right"></i>
-                  </button>
-                </li>
-              </ul>
+                <button 
+                  className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  onClick={() => handlePageChange(pagination.page + 1)}
+                  disabled={pagination.page === pagination.pages}
+                  aria-label="Next page"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
             </div>
           )}
         </>
       ) : (
-        <div className="no-data-container">
-          <div className="no-data-icon">
-            <i className="fas fa-receipt"></i>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center border-dashed border-2 border-gray-200">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-50 rounded-full mb-6">
+            <Receipt size={40} className="text-gray-300" />
           </div>
-          <p className="no-data-text">
+          <h3 className="text-xl font-bold text-gray-900 mb-2">
+            {activeFiltersCount > 0 ? 'No matching expenses' : 'No expenses yet'}
+          </h3>
+          <p className="text-gray-500 max-w-sm mx-auto mb-8">
             {activeFiltersCount > 0 
-              ? "No expenses match your current filters. Try adjusting your search criteria."
-              : "No expenses found. Add a new expense to get started!"
+              ? "We couldn't find any expenses matching your current filters. Try adjusting your search criteria."
+              : "Track your first expense to see your spending insights here."
             }
           </p>
           {activeFiltersCount > 0 ? (
-            <button onClick={resetFilters} className="no-data-btn">
-              <i className="fas fa-filter"></i> Clear Filters
+            <button 
+              onClick={resetFilters} 
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-full hover:bg-gray-200 transition-colors"
+            >
+              <RefreshCw size={16} /> Clear Filters
             </button>
           ) : (
-            <Link to="/expenses/add" className="no-data-btn">
-              <i className="fas fa-plus-circle"></i> Add Your First Expense
+            <Link 
+              to="/expenses/add" 
+              className="inline-flex items-center gap-2 px-8 py-3 bg-primary-600 text-white font-semibold rounded-full hover:bg-primary-700 shadow-md transition-all hover:-translate-y-0.5"
+            >
+              <Plus size={18} /> Add Your First Expense
             </Link>
           )}
         </div>

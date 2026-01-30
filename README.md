@@ -82,6 +82,16 @@ npm start
 ```
 The client runs on http://localhost:3000 and proxies API to http://localhost:5000.
 
+### One-command Docker setup
+
+If you prefer Docker, run everything with one command (MongoDB + API + Client + seed):
+
+```
+docker compose up --build
+```
+
+See `docs/QUICKSTART_DOCKER.md` for details.
+
 ## Usage guide (highlights)
 
 Screenshots are in `screenshot/` — the full step‑by‑step manual with images is in `docs/USER_MANUAL.md`.

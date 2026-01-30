@@ -28,8 +28,22 @@ async function http(method, url, body, headers = {}) {
   return data;
 }
 
+async function waitForHealth(base, maxAttempts = 60, delayMs = 2000) {
+  for (let i = 1; i <= maxAttempts; i++) {
+    try {
+      const res = await fetch(`${base}/api/health`);
+      if (res.ok) return true;
+    } catch (_) {}
+    // eslint-disable-next-line no-console
+    console.log(`Waiting for API... (${i}/${maxAttempts})`);
+    await new Promise((r) => setTimeout(r, delayMs));
+  }
+  throw new Error('API health check timed out');
+}
+
 async function main() {
   try {
+    await waitForHealth(BASE);
     // Register user, or login if exists
     let token;
     try {
@@ -44,16 +58,27 @@ async function main() {
     const list = await http('GET', `${BASE}/api/categories`, undefined, { Authorization: `Bearer ${token}` });
     const names = new Set(list.map((c) => c.name));
     for (const c of defaults) {
-      if (!names.has(c.name)) {
-        await http('POST', `${BASE}/api/categories`, c, { Authorization: `Bearer ${token}` });
-      }
+        if (!names.has(c.name)) {
+          try {
+            await http('POST', `${BASE}/api/categories`, c, { Authorization: `Bearer ${token}` });
+          } catch (e) {
+            const msg = String(e.message || '').toLowerCase();
+            // Ignore idempotent duplicate messages
+            if (msg.includes('already exists') || msg.includes('duplicate')) {
+              // eslint-disable-next-line no-console
+              console.log(`Category '${c.name}' already exists, skipping`);
+            } else {
+              throw e;
+            }
+          }
+        }
     }
 
     // eslint-disable-next-line no-console
     console.log('HTTP seed completed');
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.error('HTTP seed failed', e.message);
+  console.error('HTTP seed failed', e.message);
     process.exit(1);
   }
 }
